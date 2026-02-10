@@ -1,3 +1,8 @@
+# helpers
+GREEN := \e[0;32m
+RESET := \e[0m
+FLAKE8_SUCCESS := $(shell echo "$(GREEN)flake8: success$(RESET)")
+
 # structure
 DIRS := .
 MAIN := # todo
@@ -40,11 +45,11 @@ debug: install
 	@$(PYTHON) -m pdb $(MAIN) $(ARGS)
 
 lint: install
-	@$(FLAKE8)
+	@$(FLAKE8) && $(FLAKE8_SUCCESS)
 	@$(MYPY) . $(MYPY_FLAGS)
 
 lint-strict: install
-	@$(FLAKE8)
+	@$(FLAKE8) && echo $(FLAKE8_SUCCESS)
 	@$(MYPY) . --strict
 
 $(PYTHON):
