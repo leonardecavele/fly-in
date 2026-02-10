@@ -49,7 +49,7 @@ lint: install
 	@$(MYPY) . $(MYPY_FLAGS)
 
 lint-strict: install
-	@$(FLAKE8) && echo $(FLAKE8_SUCCESS)
+	@$(FLAKE8) && $(FLAKE8_SUCCESS)
 	@$(MYPY) . --strict
 
 $(PYTHON):
