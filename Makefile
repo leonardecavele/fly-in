@@ -4,9 +4,10 @@ RESET := \e[0m
 FLAKE8_SUCCESS := $(shell echo "$(GREEN)flake8: success$(RESET)")
 
 # structure
-DIRS := .
-MAIN := # todo
-ARGS ?= # todo
+SRC_DIRECTORIES := display parsing logic
+DIRS := . src/ $(addprefix, src/,$(SRC_DIRECTORIES))
+MAIN := src.fly-in
+ARGS ?= maps/easy/01_linear_path.txt
 VENV := .venv
 
 POETRY_LOCK := poetry.lock
@@ -23,6 +24,7 @@ MYPY := $(PYTHON) -m mypy $(EXCLUDE)
 PIP := $(PYTHON) -m pip
 POETRY := POETRY_VIRTUALENVS_IN_PROJECT=true $(PYTHON) -m poetry
 
+# flags
 MYPY_FLAGS := \
 		--check-untyped-defs \
 		--warn-unused-ignores \
@@ -35,7 +37,7 @@ install: $(PYPROJECT_TOML) $(POETRY_LOCK) | $(PYTHON)
 	$(POETRY) install --with dev --no-root
 
 run: install
-	@$(PYTHON) $(MAIN) $(ARGS)
+	@$(PYTHON) -m $(MAIN) $(ARGS)
 
 clean:
 	rm -rf $(PYCACHES) $(MYPYCACHES)
