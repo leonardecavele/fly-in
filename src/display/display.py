@@ -6,6 +6,7 @@ from arcade.shape_list import (
 )
 
 from src.logic import Map
+from .helpers import parse_color
 
 
 class MapView(arcade.View):
@@ -54,8 +55,9 @@ class MapView(arcade.View):
 
         for hub in self.map.hubs.values():
             x, y = hub.x, hub.y
+            color: arcade.types.Color = parse_color(hub.color)
             self.static_shapes.append(
-                create_ellipse_filled(x, y, 30, 30, arcade.color.RED) #get color of parsing
+                create_ellipse_filled(x, y, 30, 30, color)
             )
 
         x_list = [hub.x for hub in self.map.hubs.values()]
