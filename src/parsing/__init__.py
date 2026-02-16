@@ -1,3 +1,3 @@
-from . import parsing
+from .parsing import parse
 
-__all__ = ["parsing"]
+__all__ = ["parse"]

@@ -7,8 +7,8 @@ keys = [
     "nb_drones",
     "start_hub",
     "end_hub",
-    "hub",
-    "connection"
+    "connection",
+    "hub"
 ]
 
 hub_metadata_keys = [
@@ -177,7 +177,7 @@ def parse_hub(
     if name in seen["seen_names"]:
         raise ParseError(f"invalid name ({name}), already assigned")
     seen["seen_names"].append(name)
-    return {name: {"x": x, "y": y, "connections": []} | metadata}
+    return {name: {"x": x, "y": y} | metadata}
 
 
 def parse(file_name: str) -> dict[str, Any]:
