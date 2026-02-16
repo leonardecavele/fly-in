@@ -26,7 +26,7 @@ def main() -> int:
         logger.error(e)
         return ErrCode.PARSE_ERR
     try:
-        Map.MapSpecs(**map_specs)
+        Map.Validate(**map_specs)
     except ValidationError as e:
         logger.error(e.errors()[0]["msg"])
         return ErrCode.VALIDATION_ERR

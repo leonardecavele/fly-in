@@ -1,3 +1,5 @@
+from pydantic import BaseModel, Field, ConfigDict
+
 from src.logic import Drone
 
 
@@ -25,9 +27,23 @@ class Hub():
         self.start_hub = start_hub
         self.end_hub = end_hub
 
+    class Validate(BaseModel):
+        model_config = ConfigDict(extra="forbid")
+
+        x: int = Field(ge=0)
+        y: int = Field(ge=0)
+        max_drones: int = Field(ge=0)
+        zone: str
+        color: str
+        # in case it is a start or end hub
+        start_hub: bool = False
+        end_hub: bool = False
+
 
 class Connection():
     def __init__(self, a: Hub, b: Hub, max_drones: int) -> None:
+        self.drones: list[Drone] = []
+
         self.a = a
         self.b = b
         self.cap = max_drones

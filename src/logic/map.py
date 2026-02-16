@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field
 from typing import Any, Annotated
 
 from src.logic import Drone, Hub, Connection
@@ -18,25 +18,13 @@ class Map():
             if "start_hub" in data:
                 for _ in range(nb_drones):
                     self.hubs[name].drones.append(Drone())
-        for h1, h2, md in connections:
-            c = Connection(self.hubs[h1], self.hubs[h2], md)
+        for h1, h2, max_drones in connections:
+            c = Connection(self.hubs[h1], self.hubs[h2], max_drones)
             self.connections.append(c)
             self.hubs[h1].connections.append(c)
             self.hubs[h2].connections.append(c)
 
-    class MapSpecs(BaseModel):
-        class HubSpecs(BaseModel):
-            model_config = ConfigDict(extra="forbid")
-
-            x: int = Field(ge=0)
-            y: int = Field(ge=0)
-            max_drones: int = Field(ge=0)
-            zone: str
-            color: str
-            # in case it is a start or end hub
-            start_hub: bool = False
-            end_hub: bool = False
-
+    class Validate(BaseModel):
         nb_drones: int = Field(ge=0)
-        hubs: dict[str, HubSpecs]
+        hubs: dict[str, Hub.Validate]
         connections: list[tuple[str, str, Annotated[int, Field(ge=0)]]]
