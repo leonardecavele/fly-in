@@ -1,12 +1,14 @@
 import sys
 import logging
 from typing import Any
+
 from pydantic import ValidationError
+import arcade
 
 from src.parsing import parse
 from src.logic import Map
 from src.error import ParseError, ErrCode
-from src.display import run
+from src.display import MapView, screen_size
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -20,6 +22,7 @@ def main() -> int:
         logger.error("invalid usage. example :")
         logger.error("make run args=example_map")
         return ErrCode.ARGS_ERR
+
     try:
         map_specs: dict[str, Any] = parse(sys.argv[1])
     except ParseError as e:
@@ -33,7 +36,13 @@ def main() -> int:
     m = Map(**map_specs)
     logger.debug(m.hubs)
     logger.debug(m.connections)
-    run(m)
+
+    height, width = screen_size()
+    window: arcade.Window = arcade.Window(height // 4, width // 4, "Fly-in")
+    view: MapView = MapView(m)
+    window.show_view(view)
+    arcade.run()
+
     return ErrCode.NOERR
 
 
