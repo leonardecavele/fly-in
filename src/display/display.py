@@ -50,7 +50,7 @@ class MapView(arcade.View):
             a_x, a_y = connection.a.x, connection.a.y
             b_x, b_y = connection.b.x, connection.b.y
             self.static_shapes.append(
-                create_line(a_x, a_y, b_x, b_y, arcade.color.DIM_GRAY, 5) #defaultcolor
+                create_line(a_x, a_y, b_x, b_y, arcade.color.SNOW, 5)
             )
 
         for hub in self.map.hubs.values():
@@ -72,7 +72,7 @@ class MapView(arcade.View):
                 name,
                 x,
                 y - 32,
-                arcade.color.LIGHT_GRAY, #color
+                arcade.color.SNOW,
                 9,
                 anchor_x="center",
                 anchor_y="bottom"
@@ -85,7 +85,7 @@ class MapView(arcade.View):
                 "0",
                 x - 18,
                 y + 32,
-                arcade.color.WHITE,
+                arcade.color.SNOW,
                 9,
                 anchor_x="center",
                 anchor_y="top",
@@ -113,6 +113,7 @@ class MapView(arcade.View):
         self.camera.zoom = zoom
 
     def on_show_view(self) -> None:
+        arcade.set_background_color(arcade.color.SMOKY_BLACK)
         self.static_layer()
         self.camera_to_bounds()
 
