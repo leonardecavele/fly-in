@@ -150,6 +150,10 @@ class MapView(arcade.View):
                 cx - dx / self.camera.zoom, cy - dy / self.camera.zoom
             )
 
+    def on_resize(self, width: int, height: int) -> None:
+        super().on_resize(width, height)
+        self.camera_to_bounds()
+
     def on_mouse_scroll(
         self, x: int, y: int, scroll_x: int, scroll_y: int
     ) -> None:
