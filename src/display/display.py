@@ -17,6 +17,9 @@ class MapView(arcade.View):
         self.pad: float = pad
         self.elapsed_time: float = 0
 
+        self.pause: bool = True
+        self._current_turn: int = 0
+
         self.map: Map = m
         for name in m.hubs:
             x: int = m.hubs[name].x
@@ -29,6 +32,17 @@ class MapView(arcade.View):
         self.hub_name: dict[str, arcade.Text] = {}
         self.hub_count: dict[str, arcade.Text] = {}
         self.world_bounds: tuple[float, float, float, float] | None = None
+
+    @property
+    def current_turn(self) -> int:
+        return self._current_turn
+
+    @current_turn.setter
+    def current_turn(self, value: int) -> None:
+        if self.map.turn_count <= 0:
+            self._current_turn = 0
+            return
+        self._current_turn = value % self.map.turn_count
 
     def grid_to_world(self, x: int, y: int) -> tuple[float, float]:
         return float(x) * self.cell_size, float(y) * self.cell_size
@@ -118,14 +132,12 @@ class MapView(arcade.View):
         self.camera_to_bounds()
 
     def on_update(self, dt: float) -> None:
-        from src.logic import Drone
-
+        if self.pause:
+            return
         self.elapsed_time += dt
         if self.elapsed_time >= 1.0:
-            for hub in self.map.hubs.values():
-                if hub.start_hub:
-                    hub.drones.append(Drone())
             self.elapsed_time = 0.0
+            self.current_turn += 1
 
     def on_draw(self) -> None:
         self.clear()
@@ -134,7 +146,9 @@ class MapView(arcade.View):
         self.static_shapes.draw()
 
         for name, hub in self.map.hubs.items():
-            self.hub_count[name].text = str(len(hub.drones))
+            self.hub_count[name].text = str(
+                len(hub.drones[self.current_turn])
+            )
             self.hub_count[name].draw()
 
         for name in self.map.hubs.keys():
@@ -184,5 +198,24 @@ class MapView(arcade.View):
     def on_key_press(self, symbol: int, modifiers: int) -> bool | None:
         if symbol == arcade.key.Q:
             arcade.exit()
+            return True
+        if symbol == arcade.key.SPACE:
+            self.pause = not self.pause
+            self.elapsed_time = 0
+            return True
+        if symbol == arcade.key.R:
+            self.current_turn = 0
+            return True
+        if (
+            (symbol == arcade.key.L or symbol == arcade.key.RIGHT)
+            and self.pause
+        ):
+            self.current_turn += 1
+            return True
+        if (
+            (symbol == arcade.key.H or symbol == arcade.key.LEFT)
+            and self.pause
+        ):
+            self.current_turn -= 1
             return True
         return super().on_key_press(symbol, modifiers)

@@ -13,11 +13,13 @@ class Map():
     ) -> None:
         self.hubs: dict[str, Hub] = {}
         self.connections: list[Connection] = []
+        self.turn_count: int = 0
         for name, data in hubs.items():
             self.hubs[name] = Hub(name, **data)
+            self.hubs[name].drones.append(list())
             if "start_hub" in data:
                 for _ in range(nb_drones):
-                    self.hubs[name].drones.append(Drone())
+                    self.hubs[name].drones[0].append(Drone())
         for h1, h2, max_drones in connections:
             c = Connection(self.hubs[h1], self.hubs[h2], max_drones)
             self.connections.append(c)

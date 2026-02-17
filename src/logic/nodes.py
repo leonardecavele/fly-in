@@ -16,7 +16,7 @@ class Hub():
         end_hub: bool = False
     ) -> None:
         self.connections: list[Connection] = []
-        self.drones: list[Drone] = []
+        self.drones: list[list[Drone]] = []
 
         self.name = name
         self.x = x
