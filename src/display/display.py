@@ -166,7 +166,7 @@ class MapView(arcade.View):
         self.elapsed_time += dt
         if self.elapsed_time >= 1.0:
             self.elapsed_time = 0.0
-            self.current_turn += 1
+            self.current_turn += 2
 
     def on_draw(self) -> None:
         self.clear()
@@ -245,12 +245,12 @@ class MapView(arcade.View):
             (symbol == arcade.key.L or symbol == arcade.key.RIGHT)
             and self.pause
         ):
-            self.current_turn += 1
+            self.current_turn += 2
             return True
         if (
             (symbol == arcade.key.H or symbol == arcade.key.LEFT)
             and self.pause
         ):
-            self.current_turn -= 1
+            self.current_turn -= 2
             return True
         return super().on_key_press(symbol, modifiers)
