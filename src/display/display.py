@@ -65,8 +65,10 @@ class MapView(arcade.View):
         self.connection_count.clear()
 
         for connection in self.map.connections:
-            a_x, a_y = connection.a.x, connection.a.y
-            b_x, b_y = connection.b.x, connection.b.y
+            hub = connection.linked.pop()
+            a_x, a_y = hub.x, hub.y
+            hub = connection.linked.pop()
+            b_x, b_y = hub.x, hub.y
             self.static_shapes.append(
                 create_line(a_x, a_y, b_x, b_y, arcade.color.DAVY_GREY, 6.3)
             )
