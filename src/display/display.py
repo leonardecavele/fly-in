@@ -50,7 +50,7 @@ class MapView(arcade.View):
             a_x, a_y = connection.a.x, connection.a.y
             b_x, b_y = connection.b.x, connection.b.y
             self.static_shapes.append(
-                create_line(a_x, a_y, b_x, b_y, arcade.color.SNOW, 5)
+                create_line(a_x, a_y, b_x, b_y, arcade.color.DAVY_GREY, 7)
             )
 
         for hub in self.map.hubs.values():
@@ -180,3 +180,9 @@ class MapView(arcade.View):
         self.camera.position = (
             camera_x + (pre_x - new_x), camera_y + (pre_y - new_y)
         )
+
+    def on_key_press(self, symbol: int, modifiers: int) -> bool | None:
+        if symbol == arcade.key.Q:
+            arcade.exit()
+            return True
+        return super().on_key_press(symbol, modifiers)
