@@ -30,3 +30,9 @@ class Map():
         nb_drones: int = Field(ge=0)
         hubs: dict[str, Hub.Validate]
         connections: list[tuple[str, str, Annotated[int, Field(ge=0)]]]
+
+    def solve(self) -> None:
+        # create drones[t] for each hub each taken turn, increase turn_count
+        # bfs to get better paths and take the one with the most priority hubs
+        # to move a drone pop index 0 of list to get the object and append it to the destination list
+        pass
