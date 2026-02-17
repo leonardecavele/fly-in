@@ -68,7 +68,7 @@ class MapView(arcade.View):
             a_x, a_y = connection.a.x, connection.a.y
             b_x, b_y = connection.b.x, connection.b.y
             self.static_shapes.append(
-                create_line(a_x, a_y, b_x, b_y, arcade.color.DAVY_GREY, 7)
+                create_line(a_x, a_y, b_x, b_y, arcade.color.DAVY_GREY, 6.3)
             )
             x = (a_x + b_x) / 2
             y = (a_y + b_y) / 2
@@ -92,13 +92,13 @@ class MapView(arcade.View):
                 )
             elif hub.zone == "restricted":
                 self.static_shapes.append(
-                    create_rectangle_filled(x, y, 30, 30, color)
+                    create_rectangle_filled(x, y, 30, 29, color)
                 )
             elif hub.zone == "priority":
-                pts = triangle_points(x, y + 3.3, 30)
+                pts = triangle_points(x, y + 3.3, 29)
                 self.static_shapes.append(create_polygon(pts, color))
             elif hub.zone == "blocked":
-                pts = regular_polygon_points(x, y, 15, 6)
+                pts = regular_polygon_points(x, y, 17.5, 6)
                 self.static_shapes.append(create_polygon(pts, color))
 
         x_list = [hub.x for hub in self.map.hubs.values()]
