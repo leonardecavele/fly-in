@@ -46,9 +46,7 @@ class Map():
     def solve(self) -> None:
         assert self.start_hub is not None
 
-        paths: list[list[Hub | Connection]] = []
         queue: deque[Hub | Connection] = deque()
-        visited: set[Hub | Connection] = set()
         step: dict[Hub | Connection, int] = {}
         max_step: float = float("inf")
         parents: dict[
@@ -65,32 +63,39 @@ class Map():
 
             if current == self.end_hub:
                 max_step = step[current]
-                new_path: list[Hub | Connection] = []
-                new_path.append(current)
-                prev: Connection | Hub = current
-                while prev != self.start_hub:
-                    prev = max(parents[prev], key=lambda t: t[1])[0]
-                    new_path.append(prev)
-
-                paths.append(new_path)
 
             for to_explore in current.linked:
-                if to_explore not in visited:
-                    priority_count: int = max(p for _, p in parents[current])
-                    if (
-                        isinstance(to_explore, Hub)
-                        and to_explore.zone == "priority"
-                    ):
-                        priority_count += 1
-                    parents.setdefault(to_explore, []).append(
-                        (current, priority_count)
-                    )
-                    step[to_explore] = step[current] + 1
-                    queue.append(to_explore)
-                    visited.add(to_explore)
+                new_step = step[current] + 1
 
-        best_path: list[Hub | Connection] = paths[0]
+                priority_count = max(p for _, p in parents[current])
+                if isinstance(
+                    to_explore, Hub
+                ) and to_explore.zone == "priority":
+                    priority_count += 1
+
+                if to_explore not in step:
+                    step[to_explore] = new_step
+                    parents[to_explore] = [(current, priority_count)]
+                    queue.append(to_explore)
+                elif step[to_explore] == new_step:
+                    old_best = max(p for _, p in parents[to_explore])
+                    parents[to_explore].append((current, priority_count))
+                    if priority_count > old_best:
+                        queue.append(to_explore)
+
+        if self.end_hub not in parents:
+            return
+
+        best_path: list[Hub | Connection] = []
+        prev: Hub | Connection = self.end_hub
+        best_path.append(prev)
+
+        while prev != self.start_hub:
+            prev = max(parents[prev], key=lambda t: t[1])[0]
+            best_path.append(prev)
+
         best_path.reverse()
+
         d: Drone = best_path[0].drones[self.turn_count][0]
         for hc in best_path:
             hc.drones.setdefault(self.turn_count, []).append(d)
