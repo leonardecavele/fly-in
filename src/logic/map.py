@@ -45,8 +45,12 @@ class Map():
     def solve(self) -> None:
         assert self.start_hub is not None
 
-        for _ in range(self.nb_drones):
-            self.algorithm(Drone())
+        drones = [Drone() for _ in range(self.nb_drones)]
+        self.start_hub.drones.setdefault(0, [])
+        self.start_hub.drones[0].extend(drones)
+
+        for d in drones:
+            self.algorithm(d)
 
         for i in range(self.turn_count):
             for c in self.connections:
@@ -56,62 +60,76 @@ class Map():
 
     def algorithm(self, drone: Drone) -> None:
         assert self.start_hub is not None
+        assert self.end_hub is not None
 
-        queue: deque[Hub | Connection] = deque()
-        step: dict[Hub | Connection, int] = {}
-        max_step: float = float("inf")
-        parents: dict[
-            Hub | Connection, list[tuple[Hub | Connection, int]]
-        ] = {}
+        t = 0
+        while True:
+            queue: deque[Hub | Connection] = deque()
+            step: dict[Hub | Connection, int] = {}
+            max_step: float = float("inf")
+            parents: dict[
+                Hub | Connection, list[tuple[Hub | Connection, int]]
+            ] = {}
 
-        queue.append(self.start_hub)
-        step[self.start_hub] = 0
-        parents[self.start_hub] = [(self.start_hub, 0)]
-        while queue:
-            current: Hub | Connection = queue.popleft()
-            if step[current] > max_step:
-                break
+            queue.append(self.start_hub)
+            step[self.start_hub] = 0
+            parents[self.start_hub] = [(self.start_hub, 0)]
 
-            if current == self.end_hub:
-                max_step = step[current]
+            while queue:
+                current: Hub | Connection = queue.popleft()
+                if step[current] > max_step:
+                    break
 
-            for to_explore in current.linked:
-                new_step = step[current] + 1
-                if len(
-                    to_explore.drones.get(new_step, [])
-                ) >= to_explore.max_drones:
-                    continue
+                if current == self.end_hub:
+                    max_step = step[current]
 
-                priority_count = max(p for _, p in parents[current])
-                if isinstance(
-                    to_explore, Hub
-                ) and to_explore.zone == "priority":
-                    priority_count += 1
+                for to_explore in current.linked:
+                    new_step = step[current] + 1
+                    real_turn = t + new_step
 
-                if to_explore not in step:
-                    step[to_explore] = new_step
-                    parents[to_explore] = [(current, priority_count)]
-                    queue.append(to_explore)
-                elif step[to_explore] == new_step:
-                    old_best = max(p for _, p in parents[to_explore])
-                    parents[to_explore].append((current, priority_count))
-                    if priority_count > old_best:
+                    if isinstance(to_explore, Connection):
+                        if len(
+                            to_explore.drones.get(real_turn, [])
+                        ) >= to_explore.max_drones:
+                            continue
+
+                    priority_count = max(p for _, p in parents[current])
+                    if isinstance(
+                        to_explore, Hub
+                    ) and to_explore.zone == "priority":
+                        priority_count += 1
+
+                    if to_explore not in step:
+                        step[to_explore] = new_step
+                        parents[to_explore] = [(current, priority_count)]
                         queue.append(to_explore)
+                    elif step[to_explore] == new_step:
+                        old_best = max(p for _, p in parents[to_explore])
+                        parents[to_explore].append((current, priority_count))
+                        if priority_count > old_best:
+                            queue.append(to_explore)
 
-        if self.end_hub not in parents:
-            return
+            if self.end_hub not in parents:
+                t += 1
+                continue
 
-        path: list[Hub | Connection] = []
-        prev: Hub | Connection = self.end_hub
-        path.append(prev)
-
-        while prev != self.start_hub:
-            prev = max(parents[prev], key=lambda t: t[1])[0]
+            path: list[Hub | Connection] = []
+            prev: Hub | Connection = self.end_hub
             path.append(prev)
 
-        path.reverse()
+            while prev != self.start_hub:
+                prev = max(parents[prev], key=lambda x: x[1])[0]
+                path.append(prev)
 
-        current_turn_count: int = len(path)
-        self.turn_count = max([current_turn_count, self.turn_count])
-        for i, p in enumerate(path):
-            p.drones.setdefault(i, []).append(drone)
+            path.reverse()
+
+            current_turn_count: int = t + len(path)
+            self.turn_count = max(current_turn_count, self.turn_count)
+
+            for wait_turn in range(1, t + 1):
+                self.start_hub.drones.setdefault(wait_turn, []).append(drone)
+
+            for i, p in enumerate(path[1:], start=1):
+                p.drones.setdefault(t + i, []).append(drone)
+
+            return
