@@ -30,8 +30,8 @@ class Hub():
     class Validate(BaseModel):
         model_config = ConfigDict(extra="forbid")
 
-        x: int = Field(ge=0)
-        y: int = Field(ge=0)
+        x: int
+        y: int
         max_drones: int = Field(ge=0)
         zone: str
         color: str
