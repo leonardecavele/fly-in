@@ -20,9 +20,10 @@ logger = logging.getLogger(__name__)
 def main() -> int:
     if len(sys.argv) != 2:
         logger.error("invalid usage. example :")
-        logger.error("make run args=example_map")
+        logger.error("make run ARGS=example_map")
         return ErrCode.ARGS_ERR
 
+    # parsing
     try:
         map_specs: dict[str, Any] = parse(sys.argv[1])
     except ParseError as e:
@@ -37,6 +38,23 @@ def main() -> int:
     logger.debug(m.hubs)
     logger.debug(m.connections)
 
+    # logic
+    m.solve()
+
+    #from src.logic import Drone
+    #m.turn_count = 3
+    #for i in range(m.turn_count):
+    #    prev = i - 1
+
+    #    for name in m.hubs:
+    #        if i > 0:
+    #            m.hubs[name].drones.append(list())
+    #        prev_count = 0 if prev < 0 else len(m.hubs[name].drones[prev])
+
+    #        for _ in range(prev_count + 1):
+    #            m.hubs[name].drones[i].append(Drone())
+
+    # display
     height, width = screen_size()
     window: arcade.Window = arcade.Window(height // 4, width // 4, "Fly-in")
     view: MapView = MapView(m)
