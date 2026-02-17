@@ -16,7 +16,7 @@ class Hub():
         end_hub: bool = False
     ) -> None:
         self.linked: list[Connection] = []
-        self.drones: list[list[Drone]] = []
+        self.drones: dict[int, list[Drone]] = {}
 
         self.name: str = name
         self.x: int | float = x
@@ -42,7 +42,7 @@ class Hub():
 
 class Connection():
     def __init__(self, a: Hub, b: Hub, max_drones: int) -> None:
-        self.drones: list[list[tuple[Drone, bool]]] = []
+        self.drones: dict[int, list[Drone]] = {}
         self.linked: list[Hub] = []
 
         self.max_drones = max_drones

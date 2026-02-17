@@ -21,7 +21,7 @@ class Map():
 
         for name, data in hubs.items():
             self.hubs[name] = Hub(name, **data)
-            self.hubs[name].drones.append(list())
+            self.hubs[name].drones[0] = []
             if "start_hub" in data:
                 self.start_hub = self.hubs[name]
                 for _ in range(nb_drones):
@@ -33,7 +33,7 @@ class Map():
             c: Connection = Connection(
                 self.hubs[h1], self.hubs[h2], max_drones
             )
-            c.drones.append(list())
+            c.drones[0] = []
             self.connections.append(c)
             self.hubs[h1].linked.append(c)
             self.hubs[h2].linked.append(c)
@@ -44,14 +44,9 @@ class Map():
         connections: list[tuple[str, str, Annotated[int, Field(ge=0)]]]
 
     def solve(self) -> None:
-        # create drones[t] for each hub each taken turn, increase turn_count
-        # bfs to get better paths and take the one with the most priority hubs
-        # to move a drone pop index 0 of list to get the object and append 
-        # it to the destination list
+        assert self.start_hub is not None
 
         paths: list[list[Hub | Connection]] = []
-
-        assert self.start_hub is not None
         queue: deque[Hub | Connection] = deque()
         visited: set[Hub | Connection] = set()
         step: dict[Hub | Connection, int] = {}
@@ -60,7 +55,6 @@ class Map():
             Hub | Connection, list[tuple[Hub | Connection, int]]
         ] = {}
 
-        visited.add(self.start_hub)
         queue.append(self.start_hub)
         step[self.start_hub] = 0
         parents[self.start_hub] = [(self.start_hub, 0)]
@@ -71,12 +65,12 @@ class Map():
 
             if current == self.end_hub:
                 max_step = step[current]
-
                 new_path: list[Hub | Connection] = []
                 new_path.append(current)
                 prev: Connection | Hub = current
                 while prev != self.start_hub:
                     prev = max(parents[prev], key=lambda t: t[1])[0]
+                    new_path.append(prev)
 
                 paths.append(new_path)
 
@@ -95,5 +89,15 @@ class Map():
                     queue.append(to_explore)
                     visited.add(to_explore)
 
-        for path in paths:
-            print(path)
+        best_path: list[Hub | Connection] = paths[0]
+        best_path.reverse()
+        d: Drone = best_path[0].drones[self.turn_count][0]
+        for hc in best_path:
+            hc.drones.setdefault(self.turn_count, []).append(d)
+            self.turn_count += 1
+
+        for i in range(self.turn_count):
+            for c in self.connections:
+                c.drones.setdefault(i, [])
+            for h in self.hubs.values():
+                h.drones.setdefault(i, [])
