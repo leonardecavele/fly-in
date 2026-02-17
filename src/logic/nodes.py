@@ -15,17 +15,17 @@ class Hub():
         start_hub: bool = False,
         end_hub: bool = False
     ) -> None:
-        self.connections: list[Connection] = []
+        self.linked: list[Connection] = []
         self.drones: list[list[Drone]] = []
 
-        self.name = name
-        self.x = x
-        self.y = y
-        self.zone = zone
-        self.color = color
-        self.max_drones = max_drones
-        self.start_hub = start_hub
-        self.end_hub = end_hub
+        self.name: str = name
+        self.x: int | float = x
+        self.y: int | float = y
+        self.zone: str = zone
+        self.color: str = color
+        self.max_drones: int = max_drones
+        self.start_hub: bool = start_hub
+        self.end_hub: bool = end_hub
 
     class Validate(BaseModel):
         model_config = ConfigDict(extra="forbid")
@@ -42,8 +42,10 @@ class Hub():
 
 class Connection():
     def __init__(self, a: Hub, b: Hub, max_drones: int) -> None:
-        self.drones: list[Drone] = []
+        self.drones: list[list[tuple[Drone, bool]]] = []
+        self.linked: list[Hub] = []
 
-        self.a = a
-        self.b = b
-        self.cap = max_drones
+        self.max_drones = max_drones
+
+        self.linked.append(a)
+        self.linked.append(b)
