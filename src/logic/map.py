@@ -84,6 +84,12 @@ class Map():
                     max_step = step[current]
 
                 for to_explore in current.linked:
+                    if (
+                        isinstance(to_explore, Hub)
+                        and to_explore.zone == "blocked"
+                    ):
+                        continue
+
                     new_step = step[current] + 1
                     real_turn = t + new_step
 
