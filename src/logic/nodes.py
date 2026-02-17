@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field, ConfigDict
 
 from src.logic import Drone
 
+# abstract class
 
 class Hub():
     def __init__(

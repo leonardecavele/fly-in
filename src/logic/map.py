@@ -18,14 +18,13 @@ class Map():
         self.turn_count: int = 0
         self.start_hub: Hub | None = None
         self.end_hub: Hub | None = None
+        self.nb_drones: int = nb_drones
 
         for name, data in hubs.items():
             self.hubs[name] = Hub(name, **data)
             self.hubs[name].drones[0] = []
             if "start_hub" in data:
                 self.start_hub = self.hubs[name]
-                for _ in range(nb_drones):
-                    self.hubs[name].drones[0].append(Drone())
             if "end_hub" in data:
                 self.end_hub = self.hubs[name]
 
@@ -44,6 +43,18 @@ class Map():
         connections: list[tuple[str, str, Annotated[int, Field(ge=0)]]]
 
     def solve(self) -> None:
+        assert self.start_hub is not None
+
+        for _ in range(self.nb_drones):
+            self.algorithm(Drone())
+
+        for i in range(self.turn_count):
+            for c in self.connections:
+                c.drones.setdefault(i, [])
+            for h in self.hubs.values():
+                h.drones.setdefault(i, [])
+
+    def algorithm(self, drone: Drone) -> None:
         assert self.start_hub is not None
 
         queue: deque[Hub | Connection] = deque()
@@ -66,6 +77,10 @@ class Map():
 
             for to_explore in current.linked:
                 new_step = step[current] + 1
+                if len(
+                    to_explore.drones.get(new_step, [])
+                ) >= to_explore.max_drones:
+                    continue
 
                 priority_count = max(p for _, p in parents[current])
                 if isinstance(
@@ -86,23 +101,17 @@ class Map():
         if self.end_hub not in parents:
             return
 
-        best_path: list[Hub | Connection] = []
+        path: list[Hub | Connection] = []
         prev: Hub | Connection = self.end_hub
-        best_path.append(prev)
+        path.append(prev)
 
         while prev != self.start_hub:
             prev = max(parents[prev], key=lambda t: t[1])[0]
-            best_path.append(prev)
+            path.append(prev)
 
-        best_path.reverse()
+        path.reverse()
 
-        d: Drone = best_path[0].drones[self.turn_count][0]
-        for hc in best_path:
-            hc.drones.setdefault(self.turn_count, []).append(d)
-            self.turn_count += 1
-
-        for i in range(self.turn_count):
-            for c in self.connections:
-                c.drones.setdefault(i, [])
-            for h in self.hubs.values():
-                h.drones.setdefault(i, [])
+        current_turn_count: int = len(path)
+        self.turn_count = max([current_turn_count, self.turn_count])
+        for i, p in enumerate(path):
+            p.drones.setdefault(i, []).append(drone)
