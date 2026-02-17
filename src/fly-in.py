@@ -11,7 +11,7 @@ from src.error import ParseError, ErrCode
 from src.display import MapView, screen_size
 
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format="%(asctime)s %(levelname)s %(name)s:%(lineno)d - %(message)s"
 )
 logger = logging.getLogger(__name__)
@@ -40,19 +40,6 @@ def main() -> int:
 
     # logic
     m.solve()
-
-    #from src.logic import Drone
-    #m.turn_count = 3
-    #for i in range(m.turn_count):
-    #    prev = i - 1
-
-    #    for name in m.hubs:
-    #        if i > 0:
-    #            m.hubs[name].drones.append(list())
-    #        prev_count = 0 if prev < 0 else len(m.hubs[name].drones[prev])
-
-    #        for _ in range(prev_count + 1):
-    #            m.hubs[name].drones[i].append(Drone())
 
     # display
     height, width = screen_size()
