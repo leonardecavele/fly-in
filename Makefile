@@ -5,7 +5,7 @@ FLAKE8_SUCCESS := $(shell echo "$(GREEN)flake8: success$(RESET)")
 
 # structure
 SRC_DIRECTORIES := display parsing logic
-DIRS := . src $(addprefix, src/,$(SRC_DIRECTORIES))
+DIRS := . src $(addprefix src/,$(SRC_DIRECTORIES))
 MAIN := src.fly-in
 ARGS ?= maps/easy/01_linear_path.txt
 VENV := .venv
@@ -41,7 +41,7 @@ run: install
 
 clean:
 	rm -rf $(PYCACHES) $(MYPYCACHES)
-	rm -rf $(VENV)
+	#rm -rf $(VENV)
 
 debug: install
 	@$(PYTHON) -m pdb $(MAIN) $(ARGS)
