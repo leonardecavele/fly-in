@@ -1,12 +1,14 @@
 import arcade
 from arcade.shape_list import (
     ShapeElementList,
+    create_rectangle_filled,
     create_ellipse_filled,
+    create_polygon,
     create_line
 )
 
-from src.logic import Map
-from .helpers import parse_color
+from src.logic import Map, Connection
+from .helpers import parse_color, triangle_points, regular_polygon_points
 
 
 class MapView(arcade.View):
@@ -31,6 +33,7 @@ class MapView(arcade.View):
         self.static_shapes: ShapeElementList = ShapeElementList()
         self.hub_name: dict[str, arcade.Text] = {}
         self.hub_count: dict[str, arcade.Text] = {}
+        self.connection_count: dict[Connection, arcade.Text] = {}
         self.world_bounds: tuple[float, float, float, float] | None = None
 
     @property
@@ -59,6 +62,7 @@ class MapView(arcade.View):
         self.static_shapes.clear()
         self.hub_name.clear()
         self.hub_count.clear()
+        self.connection_count.clear()
 
         for connection in self.map.connections:
             a_x, a_y = connection.a.x, connection.a.y
@@ -66,13 +70,36 @@ class MapView(arcade.View):
             self.static_shapes.append(
                 create_line(a_x, a_y, b_x, b_y, arcade.color.DAVY_GREY, 7)
             )
+            x = (a_x + b_x) / 2
+            y = (a_y + b_y) / 2
+            t = arcade.Text(
+                "0",
+                x,
+                y,
+                arcade.color.SNOW,
+                8,
+                anchor_x="center",
+                anchor_y="center",
+            )
+            self.connection_count[connection] = t
 
         for hub in self.map.hubs.values():
             x, y = hub.x, hub.y
             color: arcade.types.Color = parse_color(hub.color)
-            self.static_shapes.append(
-                create_ellipse_filled(x, y, 30, 30, color)
-            )
+            if hub.zone == "normal":
+                self.static_shapes.append(
+                    create_ellipse_filled(x, y, 30, 30, color)
+                )
+            elif hub.zone == "restricted":
+                self.static_shapes.append(
+                    create_rectangle_filled(x, y, 30, 30, color)
+                )
+            elif hub.zone == "priority":
+                pts = triangle_points(x, y + 3.3, 30)
+                self.static_shapes.append(create_polygon(pts, color))
+            elif hub.zone == "blocked":
+                pts = regular_polygon_points(x, y, 15, 6)
+                self.static_shapes.append(create_polygon(pts, color))
 
         x_list = [hub.x for hub in self.map.hubs.values()]
         y_list = [hub.y for hub in self.map.hubs.values()]
@@ -97,12 +124,12 @@ class MapView(arcade.View):
             x, y = hub.x, hub.y
             t = arcade.Text(
                 "0",
-                x - 18,
-                y + 32,
-                arcade.color.SNOW,
-                9,
+                x,
+                y,
+                arcade.color.CHARCOAL,
+                11,
                 anchor_x="center",
-                anchor_y="top",
+                anchor_y="center",
             )
             self.hub_count[name] = t
 
@@ -150,6 +177,12 @@ class MapView(arcade.View):
                 len(hub.drones[self.current_turn])
             )
             self.hub_count[name].draw()
+
+        for c in self.map.connections:
+            self.connection_count[c].text = str(
+                len(c.drones[self.current_turn])
+            )
+            self.connection_count[c].draw()
 
         for name in self.map.hubs.keys():
             self.hub_name[name].draw()
