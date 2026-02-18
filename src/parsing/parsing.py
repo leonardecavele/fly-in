@@ -98,7 +98,7 @@ def parse_hub_metadata(
 
     # default
     metadata["zone"] = "normal"
-    metadata["color"] = None
+    metadata["color"] = "SNOW"
     if hub_key == "start_hub" or hub_key == "end_hub":
         metadata[hub_key] = True
         metadata["max_drones"] = nb_drones
