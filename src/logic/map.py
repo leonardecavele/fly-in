@@ -53,7 +53,7 @@ class Map():
 
         drones = [Drone() for _ in range(self.nb_drones)]
         self.start_hub.drones.setdefault(0, [])
-        self.start_hub.drones[0].extend((d, True) for d in drones)
+        self.start_hub.drones[0].extend(drones)
 
         for d in drones:
             self.algorithm(d)
@@ -167,10 +167,10 @@ class Map():
             self.turn_count = max(current_turn_count, self.turn_count)
 
             for wait_turn in range(1, t + 1):
-                self.start_hub.drones.setdefault(wait_turn, []).append((drone, True))
+                self.start_hub.drones.setdefault(wait_turn, []).append(drone)
 
             def get_conn(u: Hub, v: Hub) -> Connection:
-                for c in u.linked:  # u.linked contient des Connection
+                for c in u.linked:
                     a, b = c.linked
                     if (a is u and b is v) or (a is v and b is u):
                         return c
@@ -182,7 +182,13 @@ class Map():
                 if isinstance(prev_node, Hub) and isinstance(p, Hub):
                     conn = get_conn(prev_node, p)
                     conn.drones.setdefault(t + i, []).append(drone)
+                if isinstance(p, Connection):
+                    p.drone_count[t + i] = p.drone_count.get(t + i, 0) + 1
+                    p.drones.setdefault(t + i, []).append(drone)
+                else:
+                    p.drones.setdefault(t + i, []).append(drone)
 
-                p.drones.setdefault(t + i, []).append(drone)
+            final_turn = t + len(path)
+            self.end_hub.drones.setdefault(final_turn, []).append(drone)
 
             return

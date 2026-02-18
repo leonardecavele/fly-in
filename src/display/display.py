@@ -112,9 +112,9 @@ class MapView(arcade.View):
 
         t = arcade.Text(
             "0",
-            min_x + 30,
-            min_y + 30,
-            arcade.color.RED,
+            min_x,
+            min_y,
+            arcade.color.SNOW,
             11,
             anchor_x="center",
             anchor_y="center",
@@ -194,7 +194,7 @@ class MapView(arcade.View):
 
         for c in self.map.connections:
             self.connection_count[c].text = str(
-                len(c.drones[self.current_turn])
+                c.drone_count.get(self.current_turn, 0)
             )
             self.connection_count[c].draw()
 
@@ -202,7 +202,9 @@ class MapView(arcade.View):
             self.hub_name[name].draw()
 
         assert self.turn_display is not None
-        self.turn_display.text = f"{self.current_turn}/{self.map.turn_count}"
+        self.turn_display.text = (
+            f"{self.current_turn + 1}/{self.map.turn_count}"
+        )
         self.turn_display.draw()
 
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
