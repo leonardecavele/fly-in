@@ -33,6 +33,7 @@ class MapView(arcade.View):
         self.static_shapes: ShapeElementList = ShapeElementList()
         self.hub_name: dict[str, arcade.Text] = {}
         self.hub_count: dict[str, arcade.Text] = {}
+        self.turn_display: arcade.Text | None = None
         self.connection_count: dict[Connection, arcade.Text] = {}
         self.world_bounds: tuple[float, float, float, float] | None = None
 
@@ -109,6 +110,17 @@ class MapView(arcade.View):
         min_y, max_y = min(y_list), max(y_list)
         self.world_bounds = (min_x, min_y, max_x, max_y)
 
+        t = arcade.Text(
+            "0",
+            min_x + 30,
+            min_y + 30,
+            arcade.color.RED,
+            11,
+            anchor_x="center",
+            anchor_y="center",
+        )
+        self.turn_display = t
+
         for name, hub in self.map.hubs.items():
             x, y = hub.x, hub.y
             t = arcade.Text(
@@ -164,9 +176,9 @@ class MapView(arcade.View):
         if self.pause:
             return
         self.elapsed_time += dt
-        if self.elapsed_time >= 1.0:
+        if self.elapsed_time >= 0.6:
             self.elapsed_time = 0.0
-            self.current_turn += 2
+            self.current_turn += 1
 
     def on_draw(self) -> None:
         self.clear()
@@ -188,6 +200,10 @@ class MapView(arcade.View):
 
         for name in self.map.hubs.keys():
             self.hub_name[name].draw()
+
+        assert self.turn_display is not None
+        self.turn_display.text = f"{self.current_turn}/{self.map.turn_count}"
+        self.turn_display.draw()
 
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
         #  for linters
@@ -245,12 +261,12 @@ class MapView(arcade.View):
             (symbol == arcade.key.L or symbol == arcade.key.RIGHT)
             and self.pause
         ):
-            self.current_turn += 2
+            self.current_turn += 1
             return True
         if (
             (symbol == arcade.key.H or symbol == arcade.key.LEFT)
             and self.pause
         ):
-            self.current_turn -= 2
+            self.current_turn -= 1
             return True
         return super().on_key_press(symbol, modifiers)

@@ -1,8 +1,9 @@
+#from abc import Abc
+
 from pydantic import BaseModel, Field, ConfigDict
 
 from src.logic import Drone
 
-# abstract class
 
 class Hub():
     def __init__(
@@ -17,7 +18,7 @@ class Hub():
         end_hub: bool = False
     ) -> None:
         self.linked: list[Connection] = []
-        self.drones: dict[int, list[Drone]] = {}
+        self.drones: dict[int, list[tuple[Drone, bool]]] = {}
 
         self.name: str = name
         self.x: int | float = x
@@ -43,7 +44,7 @@ class Hub():
 
 class Connection():
     def __init__(self, a: Hub, b: Hub, max_drones: int) -> None:
-        self.drones: dict[int, list[Drone]] = {}
+        self.drones: dict[int, list[tuple[Drone, bool]]] = {}
         self.linked: list[Hub] = []
 
         self.max_drones = max_drones

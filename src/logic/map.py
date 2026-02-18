@@ -53,7 +53,7 @@ class Map():
 
         drones = [Drone() for _ in range(self.nb_drones)]
         self.start_hub.drones.setdefault(0, [])
-        self.start_hub.drones[0].extend(drones)
+        self.start_hub.drones[0].extend((d, True) for d in drones)
 
         for d in drones:
             self.algorithm(d)
@@ -77,6 +77,22 @@ class Map():
                 Hub | Connection, list[tuple[Hub | Connection, int]]
             ] = {}
 
+            def relax(
+                node: Hub | Connection,
+                new_step: int,
+                parent_node: Hub | Connection,
+                priority_count: int,
+            ) -> None:
+                if node not in step:
+                    step[node] = new_step
+                    parents[node] = [(parent_node, priority_count)]
+                    queue.append(node)
+                elif step[node] == new_step:
+                    old_best = max(p for _, p in parents[node])
+                    parents[node].append((parent_node, priority_count))
+                    if priority_count > old_best:
+                        queue.append(node)
+
             queue.append(self.start_hub)
             step[self.start_hub] = 0
             parents[self.start_hub] = [(self.start_hub, 0)]
@@ -89,46 +105,46 @@ class Map():
                 if current == self.end_hub:
                     max_step = step[current]
 
-                for to_explore in current.linked:
+                cur_prio = max(p for _, p in parents[current])
+                new_step = step[current] + 1
+                real_turn = t + new_step
 
-                    new_step = step[current] + 1
-                    real_turn = t + new_step
+                if isinstance(current, Hub):
+                    for conn in current.linked:
+                        a, b = conn.linked
+                        dest: Hub = b if current is a else a
 
-                    if len(
-                        to_explore.drones.get(real_turn, [])
-                    ) >= to_explore.max_drones:
-                        continue
-
-                    priority_count = max(p for _, p in parents[current])
-                    if isinstance(
-                        to_explore, Hub
-                    ) and to_explore.zone == "priority":
-                        priority_count += 1
-
-                    if isinstance(to_explore, Connection):
-                        a, b = to_explore.linked
-                        dest_hub: Hub = b if a in step else a
-                        prev_hub: Hub = a if a in step else a
-                        if dest_hub.zone == "blocked":
+                        if dest.zone == "blocked":
                             continue
-                        elif dest_hub.zone != "restricted":
-                            step[dest_hub] = new_step
-                            parents.setdefault(
-                                dest_hub, []
-                            ).append((prev_hub, priority_count))
-                            queue.append(dest_hub)
 
-                    if to_explore not in step:
-                        step[to_explore] = new_step
-                        parents[to_explore] = [(current, priority_count)]
-                        queue.append(to_explore)
-                    elif step[to_explore] == new_step:
-                        old_best = max(p for _, p in parents[to_explore])
-                        parents[to_explore].append((current, priority_count))
-                        if priority_count > old_best:
-                            queue.append(to_explore)
+                        if dest.zone == "restricted":
+                            if len(
+                                conn.drones.get(real_turn, [])
+                            ) >= conn.max_drones:
+                                continue
+                            relax(conn, new_step, current, cur_prio)
+                            continue
+                        if len(conn.drones.get(
+                            real_turn, [])
+                        ) >= conn.max_drones:
+                            continue
+                        if not self.is_hub_ok(dest, real_turn):
+                            continue
 
+                        prio2 = cur_prio + (
+                            1 if dest.zone == "priority" else 0
+                        )
+                        relax(dest, new_step, current, prio2)
+                else:
+                    conn = current
+                    for dest in conn.linked:
+                        if dest.zone == "blocked":
+                            continue
+                        if not self.is_hub_ok(dest, real_turn):
+                            continue
 
+                        prio2 = cur_prio + (1 if dest.zone == "priority" else 0)
+                        relax(dest, new_step, conn, prio2)
 
             if t > 10000:
                 return # raise and display msg not exit & repair display center
@@ -151,9 +167,22 @@ class Map():
             self.turn_count = max(current_turn_count, self.turn_count)
 
             for wait_turn in range(1, t + 1):
-                self.start_hub.drones.setdefault(wait_turn, []).append(drone)
+                self.start_hub.drones.setdefault(wait_turn, []).append((drone, True))
+
+            def get_conn(u: Hub, v: Hub) -> Connection:
+                for c in u.linked:  # u.linked contient des Connection
+                    a, b = c.linked
+                    if (a is u and b is v) or (a is v and b is u):
+                        return c
+                raise RuntimeError("no connection between hubs")
 
             for i, p in enumerate(path[1:], start=1):
+                prev_node = path[i - 1]
+
+                if isinstance(prev_node, Hub) and isinstance(p, Hub):
+                    conn = get_conn(prev_node, p)
+                    conn.drones.setdefault(t + i, []).append(drone)
+
                 p.drones.setdefault(t + i, []).append(drone)
 
             return
