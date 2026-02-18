@@ -59,10 +59,17 @@ class Map():
             self.algorithm(d)
 
         for i in range(self.turn_count):
-            for c in self.connections:
-                c.drones.setdefault(i, [])
             for h in self.hubs.values():
                 h.drones.setdefault(i, [])
+
+        for i in range(1, self.turn_count):
+            for h in self.hubs.values():
+                if h == self.end_hub:
+                    prev = h.drones[i - 1]
+                    cur = h.drones[i]
+                    for d in prev:
+                        if d not in cur:
+                            cur.append(d)
 
     def algorithm(self, drone: Drone) -> None:
         assert self.start_hub is not None
@@ -187,8 +194,5 @@ class Map():
                     p.drones.setdefault(t + i, []).append(drone)
                 else:
                     p.drones.setdefault(t + i, []).append(drone)
-
-            final_turn = t + len(path)
-            self.end_hub.drones.setdefault(final_turn, []).append(drone)
 
             return
