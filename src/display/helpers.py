@@ -22,6 +22,7 @@ def triangle_points(cx: float, cy: float, size: float):
         (cx + h, cy - h),
     ]
 
+
 def regular_polygon_points(cx: float, cy: float, radius: float, n: int):
     return [
         (
