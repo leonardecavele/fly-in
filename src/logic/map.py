@@ -154,7 +154,7 @@ class Map():
                         relax(dest, new_step, conn, prio2)
 
             if t > 10000:
-                return # raise and display msg not exit & repair display center
+                raise RuntimeError("can't find any existing path")
 
             if self.end_hub not in parents:
                 t += 1
