@@ -32,14 +32,18 @@ def main() -> int:
     try:
         Map.Validate(**map_specs)
     except ValidationError as e:
-        logger.error(e.errors()[0]["msg"])
+        logger.error(e)
         return ErrCode.VALIDATION_ERR
     m = Map(**map_specs)
     logger.debug(m.hubs)
     logger.debug(m.connections)
 
     # logic
-    m.solve()
+    try:
+        m.solve()
+    except RuntimeError as e:
+        logger.error(e)
+        return ErrCode.INVALID_PATH
 
     # display
     height, width = screen_size()

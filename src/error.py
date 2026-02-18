@@ -6,6 +6,7 @@ class ErrCode(IntEnum):
     PARSE_ERR = 1
     VALIDATION_ERR = 2
     ARGS_ERR = 3
+    INVALID_PATH = 4
 
 
 class ParseError(Exception):
