@@ -14,7 +14,9 @@ def parse_color(name: str) -> arcade.types.Color:
     return getattr(arcade.color, key, arcade.color.RED)
 
 
-def triangle_points(cx: float, cy: float, size: float):
+def triangle_points(
+    cx: float, cy: float, size: float
+) -> list[tuple[float, float]]:
     h = size * 0.5
     return [
         (cx, cy + h),
@@ -23,7 +25,9 @@ def triangle_points(cx: float, cy: float, size: float):
     ]
 
 
-def regular_polygon_points(cx: float, cy: float, radius: float, n: int):
+def regular_polygon_points(
+    cx: float, cy: float, radius: float, n: int
+) -> list[tuple[float, float]]:
     return [
         (
             cx + radius * math.cos(2 * math.pi * i / n),

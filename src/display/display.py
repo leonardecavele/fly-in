@@ -1,6 +1,6 @@
 import arcade
 from arcade.shape_list import (
-    ShapeElementList,
+    Shape,
     create_rectangle_filled,
     create_ellipse_filled,
     create_polygon,
@@ -12,7 +12,9 @@ from .helpers import parse_color, triangle_points, regular_polygon_points
 
 
 class MapView(arcade.View):
-    def __init__(self, m, *, cell_size: float = 112, pad: float = 1.2) -> None:
+    def __init__(
+        self, m: Map, *, cell_size: float = 112, pad: float = 1.2
+    ) -> None:
         super().__init__()
 
         self.cell_size: float = cell_size
@@ -24,14 +26,14 @@ class MapView(arcade.View):
 
         self.map: Map = m
         for name in m.hubs:
-            x: int = m.hubs[name].x
-            y: int = m.hubs[name].y
+            x: int = int(m.hubs[name].x)
+            y: int = int(m.hubs[name].y)
             m.hubs[name].x, m.hubs[name].y = self.grid_to_world(x, y)
 
         self.camera: arcade.Camera2D = arcade.Camera2D()
         self.gui_camera: arcade.Camera2D = arcade.Camera2D()
 
-        self.static_shapes: ShapeElementList = ShapeElementList()
+        self.static_shapes: list[Shape] = []
         self.hub_name: dict[str, arcade.Text] = {}
         self.hub_count: dict[str, arcade.Text] = {}
         self.connection_count: dict[Connection, arcade.Text] = {}
@@ -203,7 +205,8 @@ class MapView(arcade.View):
         self.clear()
 
         self.camera.use()
-        self.static_shapes.draw()
+        for s in self.static_shapes:
+            s.draw()
 
         for name, hub in self.map.hubs.items():
             self.hub_count[name].text = str(
@@ -236,7 +239,9 @@ class MapView(arcade.View):
         self.title_display.y = self.window.height - 42
         self.title_display.draw()
 
-    def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
+    def on_mouse_drag(
+        self, x: int, y: int, dx: int, dy: int, buttons: int, modifiers: int
+    ) -> None:
         #  for linters
         del x, y, modifiers
 
