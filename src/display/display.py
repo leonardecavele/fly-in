@@ -29,13 +29,16 @@ class MapView(arcade.View):
             m.hubs[name].x, m.hubs[name].y = self.grid_to_world(x, y)
 
         self.camera: arcade.Camera2D = arcade.Camera2D()
+        self.gui_camera: arcade.Camera2D = arcade.Camera2D()
 
         self.static_shapes: ShapeElementList = ShapeElementList()
         self.hub_name: dict[str, arcade.Text] = {}
         self.hub_count: dict[str, arcade.Text] = {}
-        self.turn_display: arcade.Text | None = None
         self.connection_count: dict[Connection, arcade.Text] = {}
         self.world_bounds: tuple[float, float, float, float] | None = None
+
+        self.turn_display: arcade.Text | None = None
+        self.title_display: arcade.Text | None = None
 
     @property
     def current_turn(self) -> int:
@@ -58,6 +61,29 @@ class MapView(arcade.View):
         w_x = c_x + (screen_x - self.window.width * 0.5) / self.camera.zoom
         w_y = c_y + (screen_y - self.window.height * 0.5) / self.camera.zoom
         return w_x, w_y
+
+    def hud_layer(self) -> None:
+        t = arcade.Text(
+            "0",
+            0,
+            0,
+            arcade.color.SNOW,
+            19,
+            anchor_x="left",
+            anchor_y="bottom"
+        )
+        self.turn_display = t
+
+        t = arcade.Text(
+            "Fly-in",
+            0,
+            0,
+            arcade.color.SNOW,
+            19,
+            anchor_x="left",
+            anchor_y="top"
+        )
+        self.title_display = t
 
     def static_layer(self) -> None:
         self.static_shapes.clear()
@@ -82,7 +108,7 @@ class MapView(arcade.View):
                 arcade.color.SNOW,
                 8,
                 anchor_x="center",
-                anchor_y="center",
+                anchor_y="center"
             )
             self.connection_count[connection] = t
 
@@ -110,17 +136,6 @@ class MapView(arcade.View):
         min_y, max_y = min(y_list), max(y_list)
         self.world_bounds = (min_x, min_y, max_x, max_y)
 
-        t = arcade.Text(
-            "0",
-            min_x,
-            min_y,
-            arcade.color.SNOW,
-            11,
-            anchor_x="center",
-            anchor_y="center",
-        )
-        self.turn_display = t
-
         for name, hub in self.map.hubs.items():
             x, y = hub.x, hub.y
             t = arcade.Text(
@@ -143,7 +158,7 @@ class MapView(arcade.View):
                 arcade.color.CHARCOAL,
                 11,
                 anchor_x="center",
-                anchor_y="center",
+                anchor_y="center"
             )
             self.hub_count[name] = t
 
@@ -155,8 +170,11 @@ class MapView(arcade.View):
         w = max_x - min_x
         h = max_y - min_y
 
-        if w <= 0 or h <= 0:
-            return None
+        min_extent = self.cell_size * 0.5
+        if w < min_extent:
+            w = min_extent
+        if h < min_extent:
+            h = min_extent
 
         zoom_x = self.window.width / w
         zoom_y = self.window.height / h
@@ -170,6 +188,7 @@ class MapView(arcade.View):
     def on_show_view(self) -> None:
         arcade.set_background_color(arcade.color.SMOKY_BLACK)
         self.static_layer()
+        self.hud_layer()
         self.camera_to_bounds()
 
     def on_update(self, dt: float) -> None:
@@ -201,11 +220,21 @@ class MapView(arcade.View):
         for name in self.map.hubs.keys():
             self.hub_name[name].draw()
 
+        self.gui_camera.use()
         assert self.turn_display is not None
+        assert self.world_bounds is not None
+        assert self.title_display is not None
+
+        self.turn_display.x = 42
+        self.turn_display.y = 42
         self.turn_display.text = (
             f"{self.current_turn + 1}/{self.map.turn_count}"
         )
         self.turn_display.draw()
+
+        self.title_display.x = 42
+        self.title_display.y = self.window.height - 42
+        self.title_display.draw()
 
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
         #  for linters
