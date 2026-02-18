@@ -42,6 +42,12 @@ class Map():
         hubs: dict[str, Hub.Validate]
         connections: list[tuple[str, str, Annotated[int, Field(ge=0)]]]
 
+    @staticmethod
+    def is_hub_ok(h: Hub, turn: int) -> bool:
+        if h.zone == "blocked":
+            return False
+        return len(h.drones.get(turn, [])) < h.max_drones
+
     def solve(self) -> None:
         assert self.start_hub is not None
 
@@ -78,32 +84,39 @@ class Map():
             while queue:
                 current: Hub | Connection = queue.popleft()
                 if step[current] > max_step:
-                    break
+                    continue
 
                 if current == self.end_hub:
                     max_step = step[current]
 
                 for to_explore in current.linked:
-                    if (
-                        isinstance(to_explore, Hub)
-                        and to_explore.zone == "blocked"
-                    ):
-                        continue
 
                     new_step = step[current] + 1
                     real_turn = t + new_step
 
-                    if isinstance(to_explore, Connection):
-                        if len(
-                            to_explore.drones.get(real_turn, [])
-                        ) >= to_explore.max_drones:
-                            continue
+                    if len(
+                        to_explore.drones.get(real_turn, [])
+                    ) >= to_explore.max_drones:
+                        continue
 
                     priority_count = max(p for _, p in parents[current])
                     if isinstance(
                         to_explore, Hub
                     ) and to_explore.zone == "priority":
                         priority_count += 1
+
+                    if isinstance(to_explore, Connection):
+                        a, b = to_explore.linked
+                        dest_hub: Hub = b if a in step else a
+                        prev_hub: Hub = a if a in step else a
+                        if dest_hub.zone == "blocked":
+                            continue
+                        elif dest_hub.zone != "restricted":
+                            step[dest_hub] = new_step
+                            parents.setdefault(
+                                dest_hub, []
+                            ).append((prev_hub, priority_count))
+                            queue.append(dest_hub)
 
                     if to_explore not in step:
                         step[to_explore] = new_step
@@ -114,6 +127,11 @@ class Map():
                         parents[to_explore].append((current, priority_count))
                         if priority_count > old_best:
                             queue.append(to_explore)
+
+
+
+            if t > 10000:
+                return # raise and display msg not exit & repair display center
 
             if self.end_hub not in parents:
                 t += 1
