@@ -1,5 +1,3 @@
-#from abc import Abc
-
 from pydantic import BaseModel, Field, ConfigDict
 
 from src.logic import Drone
