@@ -9,6 +9,7 @@ DIRS := . src $(addprefix src/,$(SRC_DIRECTORIES))
 MAIN := src.fly-in
 ARGS ?= maps/easy/01_linear_path.txt
 VENV := .venv
+VENV_STAMP := $(VENV)/stamp
 
 POETRY_LOCK := poetry.lock
 PYPROJECT_TOML := pyproject.toml
@@ -33,7 +34,10 @@ MYPY_FLAGS := \
 		--disallow-untyped-defs
 
 # rules
-install: $(PYPROJECT_TOML) $(POETRY_LOCK) | $(PYTHON)
+install: $(VENV_STAMP) $(POETRY_LOCK) | $(PYTHON)
+	$(POETRY) install --no-root
+
+install-dev: $(VENV_STAMP) $(POETRY_LOCK) | $(PYTHON)
 	$(POETRY) install --with dev --no-root
 
 run: install
@@ -41,26 +45,30 @@ run: install
 
 clean:
 	rm -rf $(PYCACHES) $(MYPYCACHES)
-	#rm -rf $(VENV)
+	rm -rf $(VENV)
 
-debug: install
+debug: install-dev
 	@$(PYTHON) -m pdb $(MAIN) $(ARGS)
 
-lint: install
+lint: install-dev
 	@$(FLAKE8) && $(FLAKE8_SUCCESS)
 	@$(MYPY) . $(MYPY_FLAGS)
 
-lint-strict: install
+lint-strict: install-dev
 	@$(FLAKE8) && $(FLAKE8_SUCCESS)
 	@$(MYPY) . --strict
 
 $(PYTHON):
 	@python3 -m venv $(VENV)
+	@touch $(VENV_STAMP)
 	@$(PIP) install -U pip
 	@$(PIP) install -U poetry
 
 $(POETRY_LOCK): $(PYPROJECT_TOML) | $(PYTHON)
 	@$(POETRY) lock
+
+$(VENV_STAMP): $(PYPROJECT_TOML)
+	@rm -rf $(VENV)
 
 # miscellaneous
 .PHONY: install run debug lint lint-strict clean
