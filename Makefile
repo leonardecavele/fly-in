@@ -6,7 +6,7 @@ FLAKE8_SUCCESS := $(shell echo "$(GREEN)flake8: success$(RESET)")
 # structure
 SRC_DIRECTORIES := display parsing logic
 DIRS := . src $(addprefix src/,$(SRC_DIRECTORIES))
-MAIN := src.fly-in
+MAIN := src.fly_in
 ARGS ?= maps/easy/01_linear_path.txt
 VENV := .venv
 VENV_STAMP := $(VENV)/stamp
