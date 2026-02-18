@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "fly-in"
+version = "0.0.1"
+
+[tool.poetry.dependencies]
+python = ">=3.10"
+annotated-types = ">=0.7.0"
+arcade = ">=3.3.3"
+attrs = ">=25.4.0"
+cffi = ">=2.0.0"
+pillow = ">=11.3.0"
+pycparser = ">=3.0"
+pydantic = ">=2.12.5"
+pydantic_core = ">=2.41.5"
+pyglet = ">=2.1.13"
+pymunk = ">=6.9.0"
+pytiled_parser = ">=2.2.9"
+typing-inspection = ">=0.4.2"
+typing_extensions = ">=4.15.0"
+
+[tool.poetry.group.dev]
+optional = true
+
+[tool.poetry.group.dev.dependencies]
+mypy = ">=1.19.1"
+flake8 = ">=7.3.0"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
