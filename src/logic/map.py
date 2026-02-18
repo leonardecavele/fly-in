@@ -150,7 +150,9 @@ class Map():
                         if not self.is_hub_ok(dest, real_turn):
                             continue
 
-                        prio2 = cur_prio + (1 if dest.zone == "priority" else 0)
+                        prio2 = cur_prio + (
+                            1 if dest.zone == "priority" else 0
+                        )
                         relax(dest, new_step, conn, prio2)
 
             if t > 10000:
