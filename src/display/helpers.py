@@ -11,7 +11,7 @@ def screen_size() -> tuple[int, int]:
 
 def parse_color(name: str) -> arcade.types.Color:
     key = name.strip().upper().replace(" ", "_").replace("-", "_")
-    return getattr(arcade.color, key, arcade.color.RED)
+    return getattr(arcade.color, key, arcade.color.SNOW)
 
 
 def triangle_points(
