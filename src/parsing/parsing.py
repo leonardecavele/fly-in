@@ -133,6 +133,8 @@ def parse_hub_metadata(
             raise ParseError(f"invalid metadata key ({key})")
         elif key == "zone" and value not in zone_types:
             raise ParseError(f"invalid metadata value ({value})")
+        elif key == "color" and not value:
+            raise ParseError("invalid metadata value ([empty])")
         elif key == "max_drones":
             try:
                 metadata[key] = int(value)
