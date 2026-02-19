@@ -18,10 +18,26 @@ logger = logging.getLogger(__name__)
 
 
 def main() -> int:
-    if len(sys.argv) != 2:
-        logger.error("invalid usage. example :")
-        logger.error("make run ARGS=example_map")
+    ac: int = len(sys.argv)
+    win_size: int = 3
+    if not (1 < ac < 4):
+        logger.error(
+            "invalid usage. example :\n"
+            "make run ARGS=\"example_map [(int)size]\""
+        )
         return ErrCode.ARGS_ERR
+    if ac == 3:
+        try:
+            win_size = int(sys.argv[2])
+            if win_size <= 0 or win_size > 3:
+                logger.error("size must be greather than 0 and less than 4")
+                return ErrCode.ARGS_ERR
+        except ValueError:
+            logger.error(
+                "invalid usage. example :\n"
+                "make run ARGS=\"example_map [(int)size]\""
+            )
+            return ErrCode.ARGS_ERR
 
     # parsing
     try:
@@ -47,7 +63,9 @@ def main() -> int:
 
     # display
     height, width = screen_size()
-    window: arcade.Window = arcade.Window(height // 4, width // 4, "Fly-in")
+    window: arcade.Window = arcade.Window(
+        height / win_size, width / win_size, "Fly-in"
+    )
     view: MapView = MapView(m)
     window.show_view(view)
     arcade.run()
