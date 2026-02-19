@@ -48,7 +48,7 @@ def main() -> int:
     try:
         Map.Validate(**map_specs)
     except ValidationError as e:
-        logger.error(e)
+        logger.error(e.errors()[0]["msg"])
         return ErrCode.VALIDATION_ERR
     m = Map(**map_specs)
     logger.debug(m.hubs)
