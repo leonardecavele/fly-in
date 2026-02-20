@@ -42,6 +42,7 @@ class Hub():
 
 class Connection():
     def __init__(self, a: Hub, b: Hub, max_drones: int) -> None:
+        self.name: str = f"{a.name}/{b.name}"
         self.drones: dict[int, list[Drone]] = {}
         self.linked: list[Hub] = []
 

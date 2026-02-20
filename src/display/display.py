@@ -210,7 +210,7 @@ class MapView(arcade.View):
 
         for name, hub in self.map.hubs.items():
             self.hub_count[name].text = str(
-                len(hub.drones[self.current_turn])
+                len(hub.drones.get(self.current_turn, []))
             )
             self.hub_count[name].draw()
 

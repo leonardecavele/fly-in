@@ -48,30 +48,42 @@ class Map():
             return False
         return len(h.drones.get(turn, [])) < h.max_drones
 
-    def solve(self) -> None:
+    def compute_paths(self) -> None:
         assert self.start_hub is not None
 
-        drones = [Drone() for _ in range(self.nb_drones)]
+        drones: list[Drone] = [Drone() for _ in range(self.nb_drones)]
+        paths: dict[Drone, list[Hub | Connection]] = {}
         self.start_hub.drones.setdefault(0, [])
         self.start_hub.drones[0].extend(drones)
 
+        # compute path for each drone
         for d in drones:
-            self.algorithm(d)
+            paths[d] = self.find_best_path(d)
 
-        for i in range(self.turn_count):
-            for h in self.hubs.values():
-                h.drones.setdefault(i, [])
-
+        # for each turn, fill the end_hub with drones that already reached it
         for i in range(1, self.turn_count):
             for h in self.hubs.values():
                 if h == self.end_hub:
-                    prev = h.drones[i - 1]
-                    cur = h.drones[i]
+                    prev = h.drones.get(i - 1, [])
+                    cur = h.drones.get(i, [])
                     for d in prev:
                         if d not in cur:
                             cur.append(d)
 
-    def algorithm(self, drone: Drone) -> None:
+        # display logs
+        logs: dict[int, list[str]] = {}
+        for d in drones:
+            for t in range(1, len(paths[d])):
+                cur_node: Hub | Connection = paths[d][t]
+                prev_node: Hub | Connection = paths[d][t - 1]
+                if cur_node == prev_node:
+                    continue
+                logs.setdefault(t, []).append(f"D{d.id}-{cur_node.name}")
+
+        for t in range(1, self.turn_count):
+            print(logs.get(t, []))
+
+    def find_best_path(self, drone: Drone) -> list[Hub | Connection]:
         assert self.start_hub is not None
         assert self.end_hub is not None
 
@@ -197,4 +209,4 @@ class Map():
                 else:
                     p.drones.setdefault(t + i, []).append(drone)
 
-            return
+            return [self.start_hub] * (t + 1) + path[1:]

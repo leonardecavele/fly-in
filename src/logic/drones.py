@@ -1,6 +1,6 @@
 class Drone():
-    n_id: int = 0
+    max_registered_id: int = 0
 
     def __init__(self) -> None:
-        self.id = Drone.n_id
-        Drone.n_id += 1
+        self.id = Drone.max_registered_id
+        Drone.max_registered_id += 1
