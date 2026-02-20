@@ -65,7 +65,7 @@ class Map():
             for h in self.hubs.values():
                 if h == self.end_hub:
                     prev = h.drones.get(i - 1, [])
-                    cur = h.drones.get(i, [])
+                    cur = h.drones.setdefault(i, [])
                     for d in prev:
                         if d not in cur:
                             cur.append(d)
