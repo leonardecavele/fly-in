@@ -81,7 +81,7 @@ class Map():
                 logs.setdefault(t, []).append(f"D{d.id}-{cur_node.name}")
 
         for t in range(1, self.turn_count):
-            print(logs.get(t, []))
+            print(" ".join(logs.get(t, [])))
 
     def find_best_path(self, drone: Drone) -> list[Hub | Connection]:
         assert self.start_hub is not None
