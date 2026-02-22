@@ -6,6 +6,9 @@ from pydantic import BaseModel, Field
 from src.logic import Drone, Hub, Connection
 
 
+MAX_TURN: int = 10000
+
+
 class Map():
     def __init__(
         self,
@@ -42,12 +45,6 @@ class Map():
         hubs: dict[str, Hub.Validate]
         connections: list[tuple[str, str, Annotated[int, Field(ge=0)]]]
 
-    @staticmethod
-    def is_hub_ok(h: Hub, turn: int) -> bool:
-        if h.zone == "blocked":
-            return False
-        return len(h.drones.get(turn, [])) < h.max_drones
-
     def compute_paths(self) -> None:
         assert self.start_hub is not None
 
@@ -60,7 +57,7 @@ class Map():
         for d in drones:
             paths[d] = self.find_best_path(d)
 
-        # for each turn, fill the end_hub with drones that already reached it
+        # for each turn, fill the end hub with drones that already reached it
         for i in range(1, self.turn_count):
             for h in self.hubs.values():
                 if h == self.end_hub:
@@ -73,140 +70,159 @@ class Map():
         # display logs
         logs: dict[int, list[str]] = {}
         for d in drones:
-            for t in range(1, len(paths[d])):
-                cur_node: Hub | Connection = paths[d][t]
-                prev_node: Hub | Connection = paths[d][t - 1]
+            for turn in range(1, len(paths[d])):
+                cur_node: Hub | Connection = paths[d][turn]
+                prev_node: Hub | Connection = paths[d][turn - 1]
                 if cur_node == prev_node:
                     continue
-                logs.setdefault(t, []).append(f"D{d.id}-{cur_node.name}")
+                logs.setdefault(turn, []).append(
+                    f"D{d.id}-{cur_node.name}"
+                )
+        for turn in range(1, self.turn_count):
+            print(" ".join(logs.get(turn, [])))
 
-        for t in range(1, self.turn_count):
-            print(" ".join(logs.get(t, [])))
+    @staticmethod
+    def is_node_valid(n: Hub | Connection, turn: int) -> bool:
+        if isinstance(n, Hub) and n.zone == "blocked":
+            return False
+        return len(n.drones.get(turn, [])) < n.max_drones
+
+    @staticmethod
+    def get_connection(u: Hub, v: Hub) -> Connection:
+        for c in u.linked:
+            a, b = c.linked
+            if (a is u and b is v) or (a is v and b is u):
+                return c
+        raise RuntimeError("no connection between hubs")
+
+    @staticmethod
+    def add_queue(
+        dest_node: Hub | Connection,
+        step_count: int,
+        from_node: Hub | Connection,
+        priority_count: int,
+        queue: deque[Hub | Connection],
+        step: dict[Hub | Connection, int],
+        parents: dict[Hub | Connection, list[tuple[Hub | Connection, int]]]
+    ) -> None:
+        if dest_node not in step:
+            step[dest_node] = step_count
+            parents[dest_node] = [(from_node, priority_count)]
+            queue.append(dest_node)
+        elif step[dest_node] == step_count:
+            prev_priority = max(p for _, p in parents[dest_node])
+            parents[dest_node].append((from_node, priority_count))
+            if priority_count > prev_priority:
+                queue.append(dest_node)
 
     def find_best_path(self, drone: Drone) -> list[Hub | Connection]:
         assert self.start_hub is not None
         assert self.end_hub is not None
 
-        t = 0
+        start_turn: int = 0
         while True:
+
+            max_step: float = float("inf")
+
             queue: deque[Hub | Connection] = deque()
             step: dict[Hub | Connection, int] = {}
-            max_step: float = float("inf")
             parents: dict[
                 Hub | Connection, list[tuple[Hub | Connection, int]]
             ] = {}
-
-            def relax(
-                node: Hub | Connection,
-                new_step: int,
-                parent_node: Hub | Connection,
-                priority_count: int,
-            ) -> None:
-                if node not in step:
-                    step[node] = new_step
-                    parents[node] = [(parent_node, priority_count)]
-                    queue.append(node)
-                elif step[node] == new_step:
-                    old_best = max(p for _, p in parents[node])
-                    parents[node].append((parent_node, priority_count))
-                    if priority_count > old_best:
-                        queue.append(node)
 
             queue.append(self.start_hub)
             step[self.start_hub] = 0
             parents[self.start_hub] = [(self.start_hub, 0)]
 
+            # BFS
             while queue:
-                current: Hub | Connection = queue.popleft()
-                if step[current] > max_step:
+                node: Hub | Connection = queue.popleft()
+                if step[node] > max_step:
                     continue
 
-                if current == self.end_hub:
-                    max_step = step[current]
+                if node == self.end_hub:
+                    max_step = step[node]
 
-                cur_prio = max(p for _, p in parents[current])
-                new_step = step[current] + 1
-                real_turn = t + new_step
+                node_priority = max(p for _, p in parents[node])
+                step_count = step[node] + 1
+                turn = start_turn + step_count
 
-                if isinstance(current, Hub):
-                    for conn in current.linked:
-                        a, b = conn.linked
-                        dest: Hub = b if current is a else a
+                # process Hub
+                if isinstance(node, Hub):
+                    for c in node.linked:
+                        a, b = c.linked
+                        dest: Hub = b if node is a else a
 
-                        if dest.zone == "blocked":
+                        if not self.is_node_valid(c, turn):
                             continue
 
                         if dest.zone == "restricted":
-                            if len(
-                                conn.drones.get(real_turn, [])
-                            ) >= conn.max_drones:
-                                continue
-                            relax(conn, new_step, current, cur_prio)
-                            continue
-                        if len(conn.drones.get(
-                            real_turn, [])
-                        ) >= conn.max_drones:
-                            continue
-                        if not self.is_hub_ok(dest, real_turn):
+                            self.add_queue(
+                                c, step_count, node, node_priority,
+                                queue, step, parents
+                            )
                             continue
 
-                        prio2 = cur_prio + (
+                        if not self.is_node_valid(dest, turn):
+                            continue
+
+                        dest_prio: int = node_priority + (
                             1 if dest.zone == "priority" else 0
                         )
-                        relax(dest, new_step, current, prio2)
+                        self.add_queue(
+                            dest, step_count, node, dest_prio,
+                            queue, step, parents
+                        )
+                # process Connection
                 else:
-                    conn = current
-                    for dest in conn.linked:
-                        if dest.zone == "blocked":
-                            continue
-                        if not self.is_hub_ok(dest, real_turn):
+                    for dest in node.linked:
+                        if not self.is_node_valid(dest, turn):
                             continue
 
-                        prio2 = cur_prio + (
+                        dest_prio = node_priority + (
                             1 if dest.zone == "priority" else 0
                         )
-                        relax(dest, new_step, conn, prio2)
+                        self.add_queue(
+                            dest, step_count, node, dest_prio,
+                            queue, step, parents
+                        )
 
-            if t > 10000:
-                raise RuntimeError("can't find any existing path")
-
+            # must wait
             if self.end_hub not in parents:
-                t += 1
+                start_turn += 1
+                if start_turn > MAX_TURN:
+                    raise RuntimeError("can'start_turn find any existing path")
                 continue
 
+            # recreate best path
             path: list[Hub | Connection] = []
+
             prev: Hub | Connection = self.end_hub
             path.append(prev)
 
             while prev != self.start_hub:
+                # care about priority
                 prev = max(parents[prev], key=lambda x: x[1])[0]
                 path.append(prev)
 
             path.reverse()
 
-            current_turn_count: int = t + len(path)
+            current_turn_count: int = start_turn + len(path)
             self.turn_count = max(current_turn_count, self.turn_count)
 
-            for wait_turn in range(1, t + 1):
+            for wait_turn in range(1, start_turn + 1):
                 self.start_hub.drones.setdefault(wait_turn, []).append(drone)
-
-            def get_conn(u: Hub, v: Hub) -> Connection:
-                for c in u.linked:
-                    a, b = c.linked
-                    if (a is u and b is v) or (a is v and b is u):
-                        return c
-                raise RuntimeError("no connection between hubs")
 
             for i, p in enumerate(path[1:], start=1):
                 prev_node = path[i - 1]
 
                 if isinstance(prev_node, Hub) and isinstance(p, Hub):
-                    conn = get_conn(prev_node, p)
-                    conn.drones.setdefault(t + i, []).append(drone)
+                    c = self.get_connection(prev_node, p)
+                    c.drones.setdefault(start_turn + i, []).append(drone)
                 if isinstance(p, Connection):
-                    p.drone_count[t + i] = p.drone_count.get(t + i, 0) + 1
-                    p.drones.setdefault(t + i, []).append(drone)
+                    p.drone_count[start_turn + i] = p.drone_count.get(start_turn + i, 0) + 1
+                    p.drones.setdefault(start_turn + i, []).append(drone)
                 else:
-                    p.drones.setdefault(t + i, []).append(drone)
+                    p.drones.setdefault(start_turn + i, []).append(drone)
 
-            return [self.start_hub] * (t + 1) + path[1:]
+            return [self.start_hub] * (start_turn + 1) + path[1:]
