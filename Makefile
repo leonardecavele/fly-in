@@ -1,7 +1,7 @@
 # helpers
-GREEN := \e[0;32m
+GREEN := \033[0;92m
 RESET := \e[0m
-FLAKE8_SUCCESS := echo -e "$(GREEN)flake8 success$(RESET)"
+FLAKE8_SUCCESS := printf '%b\n' "$(GREEN)flake8 success$(RESET)"
 
 # structure
 SRC_DIRECTORIES := display parsing logic
