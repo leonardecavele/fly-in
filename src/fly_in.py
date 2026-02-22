@@ -18,6 +18,16 @@ logger = logging.getLogger(__name__)
 
 
 def main() -> int:
+    """
+    Program entry point.
+
+    Parse inputs, compute paths, and launch the viewer.
+
+    Returns
+    -------
+    int
+        Exit status code as an ErrCode value.
+    """
     ac: int = len(sys.argv)
     win_size: float = 3
     if not (1 < ac < 4):

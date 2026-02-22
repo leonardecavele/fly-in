@@ -30,6 +30,36 @@ zone_types = [
 
 
 def parse_connection_metadata(pre_metadata: list[str]) -> int:
+    """
+    Parse connection metadata.
+
+    Extract max_link_capacity from a metadata block.
+
+    Parameters
+    ----------
+    pre_metadata
+        Raw metadata tokens.
+
+    Returns
+    -------
+    int
+        Parsed max_link_capacity value.
+
+    Raises
+    ------
+    ParseError:
+        Raised when metadata brackets are missing.
+    ParseError:
+        Raised when metadata is empty after cleanup.
+    ParseError:
+        Raised when a metadata entry lacks '='.
+    ParseError:
+        Raised when a metadata key is unknown.
+    ParseError:
+        Raised when a metadata value is not an int.
+    ParseError:
+        Raised when metadata keys are duplicated.
+    """
     max_link_capacity: int = 1
 
     if not pre_metadata:
@@ -73,6 +103,34 @@ def parse_connection_metadata(pre_metadata: list[str]) -> int:
 def parse_connection(
     seen: dict[str, list[str]], value: str, map_specs: dict[str, Any]
 ) -> tuple[str, str, int]:
+    """
+    Parse a connection specification.
+
+    Validate hubs, check duplicates, and build a tuple.
+
+    Parameters
+    ----------
+    seen
+        Seen keys and names while parsing.
+    value
+        Raw connection value string.
+    map_specs
+        Map spec dict being built.
+
+    Returns
+    -------
+    tuple[str, str, int]
+        Parsed (from, to, capacity) tuple.
+
+    Raises
+    ------
+    ParseError:
+        Raised when the connection token is malformed.
+    ParseError:
+        Raised when a referenced hub does not exist.
+    ParseError:
+        Raised when the connection is already registered.
+    """
     metadata: int = 0
     connection, *pre_metadata = value.split()
     # get hubs
@@ -94,6 +152,46 @@ def parse_connection(
 def parse_hub_metadata(
     pre_metadata: list[str], nb_drones: int, hub_key: str
 ) -> dict[str, Any]:
+    """
+    Parse hub metadata.
+
+    Parse zone/color/max_drones metadata with defaults.
+
+    Parameters
+    ----------
+    pre_metadata
+        Raw metadata tokens.
+    nb_drones
+        Total number of drones.
+    hub_key
+        Hub key name (start_hub/end_hub/hub).
+
+    Returns
+    -------
+    dict[str, Any]
+        Metadata dict for this hub.
+
+    Raises
+    ------
+    ParseError:
+        Raised when metadata brackets are missing.
+    ParseError:
+        Raised when metadata is empty after cleanup.
+    ParseError:
+        Raised when a metadata entry lacks '='.
+    ParseError:
+        Raised when a metadata key is unknown.
+    ParseError:
+        Raised when a zone value is invalid.
+    ParseError:
+        Raised when the color value is empty.
+    ParseError:
+        Raised when max_drones is not an int.
+    ParseError:
+        Raised when max_drones is too small for start/end.
+    ParseError:
+        Raised when metadata keys are duplicated.
+    """
     metadata: dict[str, Any] = {}
 
     # default
@@ -160,6 +258,38 @@ def parse_hub_metadata(
 def parse_hub(
     seen: dict[str, list[str]], key: str, value: str, nb_drones: int
 ) -> dict[str, dict[str, Any]]:
+    """
+    Parse a hub specification.
+
+    Parse hub name, coordinates, and metadata into a dict.
+
+    Parameters
+    ----------
+    seen
+        Seen keys and names while parsing.
+    key
+        Hub key name.
+    value
+        Raw hub value string.
+    nb_drones
+        Total number of drones.
+
+    Returns
+    -------
+    dict[str, dict[str, Any]]
+        Parsed hub entry mapping name to data.
+
+    Raises
+    ------
+    ParseError:
+        Raised when there are not enough values.
+    ParseError:
+        Raised when the hub name contains '-'.
+    ParseError:
+        Raised when coordinates are not integers.
+    ParseError:
+        Raised when the hub name is already used.
+    """
     splitted_values = value.split()
     if len(splitted_values) < 3:
         raise ParseError("invalid number of values")
@@ -183,6 +313,40 @@ def parse_hub(
 
 
 def parse(file_name: str) -> dict[str, Any]:
+    """
+    Parse a map file into specs.
+
+    Read a spec file and return a validated map_specs dict.
+
+    Parameters
+    ----------
+    file_name
+        Path to the spec file to parse.
+
+    Returns
+    -------
+    dict[str, Any]
+        Complete parsed map specification dict.
+
+    Raises
+    ------
+    ParseError:
+        Raised when a line has an invalid ':' count.
+    ParseError:
+        Raised when key or value is empty.
+    ParseError:
+        Raised when a key is unknown.
+    ParseError:
+        Raised when the first key is not nb_drones.
+    ParseError:
+        Raised when nb_drones is not an int.
+    ParseError:
+        Raised when a line fails to parse.
+    ParseError:
+        Raised when start_hub is missing or duplicated.
+    ParseError:
+        Raised when end_hub is missing or duplicated.
+    """
     map_specs: dict[str, Any] = {}
     map_specs["hubs"] = {}
     map_specs["connections"] = []

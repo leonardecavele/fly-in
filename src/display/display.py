@@ -12,9 +12,26 @@ from .helpers import parse_color, triangle_points, regular_polygon_points
 
 
 class MapView(arcade.View):
+    """
+    Arcade view that draws the map and simulation state.
+    """
     def __init__(
         self, m: Map, *, cell_size: float = 112, pad: float = 1.2
     ) -> None:
+        """
+        Initialize the map view.
+
+        Prepare cameras, layers, and coordinate transforms.
+
+        Parameters
+        ----------
+        m
+            Map instance to display.
+        cell_size
+            Pixel size of one grid cell.
+        pad
+            Padding factor around bounds.
+        """
         super().__init__()
 
         self.cell_size: float = cell_size
@@ -44,27 +61,93 @@ class MapView(arcade.View):
 
     @property
     def current_turn(self) -> int:
+        """
+        Get the current simulation turn.
+
+        Return the current turn index used for display.
+
+        Parameters
+        ----------
+        self : MapView
+            Value for param.
+
+        Returns
+        -------
+        int
+            Current simulation turn index.
+        """
         return self._current_turn
 
     @current_turn.setter
     def current_turn(self, value: int) -> None:
+        """
+        Set the current simulation turn.
+
+        Update the turn index used for display.
+
+        Parameters
+        ----------
+        self : MapView
+            Value for param.
+        value
+            New simulation turn index.
+        """
         if self.map.turn_count <= 0:
             self._current_turn = 0
             return
         self._current_turn = value % self.map.turn_count
 
     def grid_to_world(self, x: int, y: int) -> tuple[float, float]:
+        """
+        Convert grid coords to world coords.
+
+        Scale grid coordinates into world pixel space.
+
+        Parameters
+        ----------
+        x
+            Grid x coordinate.
+        y
+            Grid y coordinate.
+
+        Returns
+        -------
+        tuple[float, float]
+            World coordinates in pixels.
+        """
         return float(x) * self.cell_size, float(y) * self.cell_size
 
     def screen_to_world(
         self, screen_x: float, screen_y: float
     ) -> tuple[float, float]:
+        """
+        Convert screen coords to world coords.
+
+        Translate screen pixels into world coordinates.
+
+        Parameters
+        ----------
+        screen_x
+            Screen x position in pixels.
+        screen_y
+            Screen y position in pixels.
+
+        Returns
+        -------
+        tuple[float, float]
+            World coordinates in pixels.
+        """
         c_x, c_y = self.camera.position
         w_x = c_x + (screen_x - self.window.width * 0.5) / self.camera.zoom
         w_y = c_y + (screen_y - self.window.height * 0.5) / self.camera.zoom
         return w_x, w_y
 
     def hud_layer(self) -> None:
+        """
+        Build the HUD layer.
+
+        Create HUD texts for the title and current turn.
+        """
         t = arcade.Text(
             "0",
             0,
@@ -88,6 +171,11 @@ class MapView(arcade.View):
         self.title_display = t
 
     def static_layer(self) -> None:
+        """
+        Build static map shapes.
+
+        Create shapes and labels that do not change per turn.
+        """
         self.static_shapes.clear()
         self.hub_name.clear()
         self.hub_count.clear()
@@ -165,6 +253,11 @@ class MapView(arcade.View):
             self.hub_count[name] = t
 
     def camera_to_bounds(self) -> None:
+        """
+        Fit the camera to map bounds.
+
+        Center and zoom the camera to fit the map.
+        """
         if self.world_bounds is None:
             return None
 
@@ -188,12 +281,27 @@ class MapView(arcade.View):
         self.camera.zoom = zoom
 
     def on_show_view(self) -> None:
+        """
+        Set up the view when shown.
+
+        Initialize background, layers, and camera settings.
+        """
         arcade.set_background_color(arcade.color.SMOKY_BLACK)
         self.static_layer()
         self.hud_layer()
         self.camera_to_bounds()
 
     def on_update(self, dt: float) -> None:
+        """
+        Update the simulation state.
+
+        Advance turns when not paused.
+
+        Parameters
+        ----------
+        dt
+            Elapsed time since last update.
+        """
         if self.pause:
             return
         self.elapsed_time += dt
@@ -202,6 +310,11 @@ class MapView(arcade.View):
             self.current_turn += 1
 
     def on_draw(self) -> None:
+        """
+        Draw the current frame.
+
+        Draw map shapes, counts, and HUD overlays.
+        """
         self.clear()
 
         self.camera.use()
@@ -242,6 +355,26 @@ class MapView(arcade.View):
     def on_mouse_drag(
         self, x: int, y: int, dx: int, dy: int, buttons: int, modifiers: int
     ) -> None:
+        """
+        Handle mouse dragging.
+
+        Pan the camera when dragging with the left button.
+
+        Parameters
+        ----------
+        x
+            Mouse x position in pixels.
+        y
+            Mouse y position in pixels.
+        dx
+            Mouse delta x in pixels.
+        dy
+            Mouse delta y in pixels.
+        buttons
+            Mouse button state bitmask.
+        modifiers
+            Modifier keys bitmask.
+        """
         #  for linters
         del x, y, modifiers
 
@@ -252,12 +385,40 @@ class MapView(arcade.View):
             )
 
     def on_resize(self, width: int, height: int) -> None:
+        """
+        Handle window resize.
+
+        Refit the camera after resizing the window.
+
+        Parameters
+        ----------
+        width
+            New window width in pixels.
+        height
+            New window height in pixels.
+        """
         super().on_resize(width, height)
         self.camera_to_bounds()
 
     def on_mouse_scroll(
         self, x: int, y: int, scroll_x: int, scroll_y: int
     ) -> None:
+        """
+        Handle mouse wheel scrolling.
+
+        Zoom the camera around the cursor position.
+
+        Parameters
+        ----------
+        x
+            Mouse x position in pixels.
+        y
+            Mouse y position in pixels.
+        scroll_x
+            Horizontal scroll amount.
+        scroll_y
+            Vertical scroll amount.
+        """
         #  for linters
         del scroll_x
 
@@ -283,6 +444,23 @@ class MapView(arcade.View):
         )
 
     def on_key_press(self, symbol: int, modifiers: int) -> bool | None:
+        """
+        Handle key press events.
+
+        Handle pause, stepping, reset, and quit controls.
+
+        Parameters
+        ----------
+        symbol
+            Pressed key code.
+        modifiers
+            Modifier keys bitmask.
+
+        Returns
+        -------
+        bool | None
+            True if handled, else delegate to the base handler.
+        """
         if symbol == arcade.key.Q:
             arcade.exit()
             return True

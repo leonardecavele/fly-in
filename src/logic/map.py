@@ -10,12 +10,29 @@ MAX_TURN: int = 10000
 
 
 class Map():
+    """
+    Map model with hubs, connections, and routing logic.
+    """
     def __init__(
         self,
         nb_drones: int,
         hubs: dict[str, dict[str, Any]],
         connections: list[tuple[str, str, int]]
     ) -> None:
+        """
+        Create a Map from parsed specs.
+
+        Instantiate hubs and connections from validated input data.
+
+        Parameters
+        ----------
+        nb_drones
+            Number of drones to simulate.
+        hubs
+            Hub specs from the parser.
+        connections
+            Connection specs from the parser.
+        """
         self.hubs: dict[str, Hub] = {}
         self.connections: list[Connection] = []
         self.turn_count: int = 0
@@ -41,6 +58,18 @@ class Map():
             self.hubs[h2].linked.append(c)
 
     class Validate(BaseModel):
+        """
+        Pydantic model used to validate map specs.
+
+        Attributes
+        ----------
+        nb_drones
+            Number of drones to simulate.
+        hubs
+            Validated hub specifications.
+        connections
+            Validated connection specifications.
+        """
         nb_drones: int = Field(ge=0)
         hubs: dict[str, Hub.Validate]
         connections: list[tuple[str, str, Annotated[int, Field(ge=0)]]]
@@ -48,6 +77,18 @@ class Map():
     def display_logs(
         self, drones: list[Drone], paths: dict[Drone, list[Hub | Connection]]
     ) -> None:
+        """
+        Print per-turn movement logs.
+
+        Format and print the computed path for each drone.
+
+        Parameters
+        ----------
+        drones
+            List of drones to display.
+        paths
+            Computed path for each drone.
+        """
         logs: dict[int, list[str]] = {}
         for d in drones:
             for turn in range(1, len(paths[d])):
@@ -62,6 +103,11 @@ class Map():
             print(" ".join(logs.get(turn, [])))
 
     def compute_paths(self) -> None:
+        """
+        Compute paths for all drones.
+
+        Compute each drone path and update per-turn occupancy.
+        """
         assert self.start_hub is not None
 
         drones: list[Drone] = [Drone() for _ in range(self.nb_drones)]
@@ -105,12 +151,51 @@ class Map():
 
     @staticmethod
     def is_node_valid(n: Hub | Connection, turn: int) -> bool:
+        """
+        Check if a node is available.
+
+        Enforce capacity and blocked-zone rules for a given turn.
+
+        Parameters
+        ----------
+        n
+            Hub or connection to check.
+        turn
+            Turn index to check.
+
+        Returns
+        -------
+        bool
+            True if the node can accept a drone at this turn.
+        """
         if isinstance(n, Hub) and n.zone == "blocked":
             return False
         return len(n.drones.get(turn, [])) < n.max_drones
 
     @staticmethod
     def get_connection(u: Hub, v: Hub) -> Connection:
+        """
+        Get the connection between two hubs.
+
+        Search linked edges and return the matching connection.
+
+        Parameters
+        ----------
+        u
+            First endpoint hub.
+        v
+            Second endpoint hub.
+
+        Returns
+        -------
+        Connection
+            Connection linking the two hubs.
+
+        Raises
+        ------
+        RuntimeError:
+            Raised if no connection exists between the hubs.
+        """
         for c in u.linked:
             a, b = c.linked
             if (a is u and b is v) or (a is v and b is u):
@@ -127,6 +212,28 @@ class Map():
         step: dict[Hub | Connection, int],
         parents: dict[Hub | Connection, list[tuple[Hub | Connection, int]]]
     ) -> None:
+        """
+        Update search state for a queued node.
+
+        Record steps and parents, then enqueue nodes when needed.
+
+        Parameters
+        ----------
+        dest_node
+            Candidate node to enqueue.
+        step_count
+            Step count to reach dest_node.
+        from_node
+            Parent node for dest_node.
+        priority_count
+            Priority used to break ties.
+        queue
+            Search queue.
+        step
+            Best step count per node.
+        parents
+            Parent tracking per node.
+        """
         if dest_node not in step:
             step[dest_node] = step_count
             parents[dest_node] = [(from_node, priority_count)]
@@ -138,6 +245,26 @@ class Map():
                 queue.append(dest_node)
 
     def find_best_path(self, drone: Drone) -> list[Hub | Connection]:
+        """
+        Find the best path for one drone.
+
+        Search a valid route from start to end with constraints.
+
+        Parameters
+        ----------
+        drone
+            Drone to route.
+
+        Returns
+        -------
+        list[Hub | Connection]
+            Sequence of hubs and connections for this drone.
+
+        Raises
+        ------
+        RuntimeError:
+            Raised if no valid path can be found.
+        """
         assert self.start_hub is not None
         assert self.end_hub is not None
 
