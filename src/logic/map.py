@@ -45,6 +45,22 @@ class Map():
         hubs: dict[str, Hub.Validate]
         connections: list[tuple[str, str, Annotated[int, Field(ge=0)]]]
 
+    def display_logs(
+        self, drones: list[Drone], paths: dict[Drone, list[Hub | Connection]]
+    ) -> None:
+        logs: dict[int, list[str]] = {}
+        for d in drones:
+            for turn in range(1, len(paths[d])):
+                node: Hub | Connection = paths[d][turn]
+                prev_node: Hub | Connection = paths[d][turn - 1]
+                if node == prev_node:
+                    continue
+                logs.setdefault(turn, []).append(
+                    f"D{d.id}-{node.name}"
+                )
+        for turn in range(1, self.turn_count):
+            print(" ".join(logs.get(turn, [])))
+
     def compute_paths(self) -> None:
         assert self.start_hub is not None
 
@@ -57,6 +73,24 @@ class Map():
         for d in drones:
             paths[d] = self.find_best_path(d)
 
+            # fill path
+            for i, node in enumerate(paths[d]):
+                if node == self.start_hub:
+                    continue
+                prev_node = paths[d][i - 1]
+                if isinstance(prev_node, Hub) and isinstance(node, Hub):
+                    c = self.get_connection(prev_node, node)
+                    c.drones.setdefault(i, []).append(d)
+
+                if isinstance(node, Connection):
+                    node.drone_count[i] = node.drone_count.get(i, 0) + 1
+                    node.drones.setdefault(i, []).append(d)
+                else:
+                    node.drones.setdefault(i, []).append(d)
+
+        # get turn_count
+        self.turn_count = max(len(p) for p in paths.values())
+
         # for each turn, fill the end hub with drones that already reached it
         for i in range(1, self.turn_count):
             for h in self.hubs.values():
@@ -67,19 +101,7 @@ class Map():
                         if d not in cur:
                             cur.append(d)
 
-        # display logs
-        logs: dict[int, list[str]] = {}
-        for d in drones:
-            for turn in range(1, len(paths[d])):
-                cur_node: Hub | Connection = paths[d][turn]
-                prev_node: Hub | Connection = paths[d][turn - 1]
-                if cur_node == prev_node:
-                    continue
-                logs.setdefault(turn, []).append(
-                    f"D{d.id}-{cur_node.name}"
-                )
-        for turn in range(1, self.turn_count):
-            print(" ".join(logs.get(turn, [])))
+        self.display_logs(drones, paths)
 
     @staticmethod
     def is_node_valid(n: Hub | Connection, turn: int) -> bool:
@@ -194,6 +216,10 @@ class Map():
                     raise RuntimeError("can'start_turn find any existing path")
                 continue
 
+            # fill wait at start hub
+            for wait_turn in range(1, start_turn + 1):
+                self.start_hub.drones.setdefault(wait_turn, []).append(drone)
+
             # recreate best path
             path: list[Hub | Connection] = []
 
@@ -204,25 +230,10 @@ class Map():
                 # care about priority
                 prev = max(parents[prev], key=lambda x: x[1])[0]
                 path.append(prev)
-
             path.reverse()
+            start_padding: list[Hub | Connection] = [
+                self.start_hub
+            ] * (start_turn + 1)
+            path = start_padding + path[1:]
 
-            current_turn_count: int = start_turn + len(path)
-            self.turn_count = max(current_turn_count, self.turn_count)
-
-            for wait_turn in range(1, start_turn + 1):
-                self.start_hub.drones.setdefault(wait_turn, []).append(drone)
-
-            for i, p in enumerate(path[1:], start=1):
-                prev_node = path[i - 1]
-
-                if isinstance(prev_node, Hub) and isinstance(p, Hub):
-                    c = self.get_connection(prev_node, p)
-                    c.drones.setdefault(start_turn + i, []).append(drone)
-                if isinstance(p, Connection):
-                    p.drone_count[start_turn + i] = p.drone_count.get(start_turn + i, 0) + 1
-                    p.drones.setdefault(start_turn + i, []).append(drone)
-                else:
-                    p.drones.setdefault(start_turn + i, []).append(drone)
-
-            return [self.start_hub] * (start_turn + 1) + path[1:]
+            return path
