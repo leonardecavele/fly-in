@@ -70,7 +70,7 @@ class MapView(arcade.View):
             0,
             0,
             arcade.color.SNOW,
-            19,
+            self.window.width // 30,
             anchor_x="left",
             anchor_y="bottom"
         )
@@ -81,7 +81,7 @@ class MapView(arcade.View):
             0,
             0,
             arcade.color.SNOW,
-            19,
+            self.window.width // 30,
             anchor_x="left",
             anchor_y="top"
         )
@@ -228,15 +228,15 @@ class MapView(arcade.View):
         assert self.world_bounds is not None
         assert self.title_display is not None
 
-        self.turn_display.x = 42
-        self.turn_display.y = 42
+        self.turn_display.x = self.window.height * 0.01
+        self.turn_display.y = self.window.height * 0.01
         self.turn_display.text = (
             f"{self.current_turn + 1}/{self.map.turn_count}"
         )
         self.turn_display.draw()
 
-        self.title_display.x = 42
-        self.title_display.y = self.window.height - 42
+        self.title_display.x = self.window.height * 0.01
+        self.title_display.y = self.window.height - self.window.height * 0.01
         self.title_display.draw()
 
     def on_mouse_drag(
