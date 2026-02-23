@@ -73,7 +73,7 @@ def main() -> int:
 
     # display
     try:
-        height, width = screen_size()
+        width, height = screen_size()
         window: arcade.Window = arcade.Window(
             int(height / win_size), int(width / win_size), "Fly-in"
         )
