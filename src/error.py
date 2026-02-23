@@ -8,21 +8,24 @@ class ErrCode(IntEnum):
     Attributes
     ----------
     NOERR : int
-        Attribute description.
+        No error occurred.
     PARSE_ERR : int
-        Attribute description.
+        Failed to parse the input (invalid syntax/format).
     VALIDATION_ERR : int
-        Attribute description.
+        Input parsed but failed validation (invalid values/rules).
     ARGS_ERR : int
-        Attribute description.
+        Invalid command-line arguments (missing/unknown options).
     INVALID_PATH : int
-        Attribute description.
+        A provided path is invalid or cannot be accessed.
+    DISPLAY_ERR : int
+        Failed to display or render the output.
     """
     NOERR = 0
     PARSE_ERR = 1
     VALIDATION_ERR = 2
     ARGS_ERR = 3
     INVALID_PATH = 4
+    DISPLAY_ERR = 5
 
 
 class ParseError(Exception):

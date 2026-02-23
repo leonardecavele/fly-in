@@ -72,13 +72,17 @@ def main() -> int:
         return ErrCode.INVALID_PATH
 
     # display
-    height, width = screen_size()
-    window: arcade.Window = arcade.Window(
-        int(height / win_size), int(width / win_size), "Fly-in"
-    )
-    view: MapView = MapView(m)
-    window.show_view(view)
-    arcade.run()
+    try:
+        height, width = screen_size()
+        window: arcade.Window = arcade.Window(
+            int(height / win_size), int(width / win_size), "Fly-in"
+        )
+        view: MapView = MapView(m)
+        window.show_view(view)
+        arcade.run()
+    except Exception as e:
+        logger.error(e)
+        return ErrCode.DISPLAY_ERR
 
     return ErrCode.NOERR
 
