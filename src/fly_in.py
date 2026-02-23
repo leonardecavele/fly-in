@@ -52,9 +52,12 @@ def main() -> int:
     # parsing
     try:
         map_specs: dict[str, Any] = parse(sys.argv[1])
-    except (ParseError, OSError) as e:
+    except ParseError as e:
         logger.error(e)
         return ErrCode.PARSE_ERR
+    except OSError as e:
+        logger.error(e)
+        return ErrCode.INVALID_PATH
     try:
         Map.Validate(**map_specs)
     except ValidationError as e:
