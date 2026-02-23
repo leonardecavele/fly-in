@@ -45,11 +45,78 @@ make debug
 ```
 
 ### ALGORITHMS
- A detailed description of your algorithm choices and implementation strategy must
+A detailed description of your algorithm choices and implementation strategy must
 also be included.
 
-### VISUALIZATION FEATURES
-Documentation (?)
+### MAP FORMAT
+
+Map files are plain text.
+
+#### RULES
+- Lines starting with `#` are comments.
+- The first required line is: `nb_drones: <positive_int>`
+- Then define zones:
+  - `start_hub: <name> <x> <y> [metadata]`
+  - `end_hub: <name> <x> <y> [metadata]`
+  - `hub: <name> <x> <y> [metadata]`
+- Then define connections (bidirectional edges):
+  - `connection: <zone1>-<zone2> [metadata]`
+- Zone names must be unique and must not contain spaces or dashes.
+- Coordinates are positive integers.
+- There is exactly one start and one end.
+
+#### METADATA (optional)
+- Metadata is inside `[...]`, space-separated, order does not matter.
+- Zone metadata:
+  - `zone=normal|restricted|blocked|priority` (default: `normal`)
+  - `color=<word>` (default: none)
+  - `max_drones=<positive_int>` (default: `1`)
+- Connection metadata:
+  - `max_link_capacity=<positive_int>` (default: `1`)
+
+#### ZONE TYPES
+- `normal`: cost 1 turn (default)
+- `restricted`: cost 2 turns
+- `priority`: cost 1 turn (but should be preferred by the algorithm)
+- `blocked`: forbidden (cannot be entered)
+
+#### EXAMPLE
+```txt
+# Simple linear path
+nb_drones: 2
+
+start_hub: start 0 0 [color=green]
+hub: waypoint1 1 0 [zone=normal color=blue]
+hub: waypoint2 2 0 [zone=normal color=blue]
+end_hub: goal 3 0 [color=red]
+
+connection: start-waypoint1
+connection: waypoint1-waypoint2
+connection: waypoint2-goal
+```
+
+### VISUALIZATION
+Made with **arcade**.
+
+#### KEYMAPS
+- Mouse wheel: zoom
+- Click + drag: move the camera
+- Arrows or H/L (vim-like): move across turns
+- Spacebar: autorun (play/pause)
+- R: rewind
+
+#### HUD
+- Turn counter
+- Program title
+
+#### SHAPES
+- SQUARE: restricted
+- CIRCLE: normal
+- OCTAGON: blocked
+- TRIANGLE: priority
+
+#### COLORS
+- Arcade supported colors
 
 ### RESOURCES
 
