@@ -45,8 +45,22 @@ make debug
 ```
 
 ### ALGORITHMS
-A detailed description of your algorithm choices and implementation strategy must
-also be included.
+
+The pathfinding used in this project is a simple BFS variant inspired by Dijkstra, but it is not a true Dijkstra implementation.
+
+- Nodes are not handled with a full weight system.
+- Priority zones bias the search (they are preferred over others).
+- Restricted zones are treated as a cost of 2 turns by expanding them as two normal steps instead of using real weighted edges.
+
+#### Multi-agent handling (reservation table)
+The program computes a path for each drone while keeping a time-based reservation of the graph:
+
+- For each planned path, every hub and connection is reserved for every turn where the drone occupies it.
+- When planning the next drone, the algorithm checks these reservations to avoid collisions and conflicts in time.
+- Each object (Hub or Connection) has its own reservation table
+
+#### Waiting / delayed start
+If a drone cannot move at turn `t` (because the next hub/connection is already reserved), it does not force its way through. Instead, it waits at the start hub and retries later using a decayed start.
 
 ### MAP FORMAT
 
