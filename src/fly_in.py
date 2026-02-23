@@ -75,7 +75,7 @@ def main() -> int:
     try:
         width, height = screen_size()
         window: arcade.Window = arcade.Window(
-            int(height / win_size), int(width / win_size), "Fly-in"
+            int(width / win_size), int(height / win_size), "Fly-in"
         )
         view: MapView = MapView(m)
         window.show_view(view)
