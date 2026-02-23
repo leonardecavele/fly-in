@@ -48,7 +48,8 @@ clean:
 	rm -rf $(VENV)
 
 debug: install-dev
-	@$(PYTHON) -m pdb $(MAIN) $(ARGS)
+	@$(PYTHON) -m $(MAIN) $(ARGS)
+	@$(PYTHON) -m pdb -m $(MAIN) $(ARGS)
 
 lint: install-dev
 	@$(FLAKE8) && $(FLAKE8_SUCCESS)
