@@ -67,7 +67,7 @@ def main() -> int:
     # logic
     try:
         m.compute_paths()
-    except RuntimeError as e:
+    except (RuntimeError, AssertionError) as e:
         logger.error(e)
         return ErrCode.INVALID_PATH
 
