@@ -70,7 +70,7 @@ class Map():
         connections
             Validated connection specifications.
         """
-        nb_drones: int = Field(ge=0)
+        nb_drones: int = Field(ge=1)
         hubs: dict[str, Hub.Validate]
         connections: list[tuple[str, str, Annotated[int, Field(ge=0)]]]
 
