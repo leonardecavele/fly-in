@@ -3,30 +3,30 @@ from typing import Any
 from src.error import ParseError
 
 
-keys = [
+keys: set[str] = {
     "nb_drones",
     "start_hub",
     "end_hub",
     "connection",
     "hub"
-]
+}
 
-hub_metadata_keys = [
+hub_metadata_keys: set[str] = {
     "zone",
     "color",
     "max_drones"
-]
+}
 
-connection_metadata_keys = [
+connection_metadata_keys: set[str] = {
     "max_link_capacity"
-]
+}
 
-zone_types = [
+zone_types: set[str] = {
     "normal",
     "blocked",
     "restricted",
     "priority"
-]
+}
 
 
 def parse_connection_metadata(pre_metadata: list[str]) -> int:
