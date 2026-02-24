@@ -389,6 +389,8 @@ def parse(file_name: str) -> dict[str, Any]:
                         "connections"
                     ].append(parse_connection(seen, value, map_specs))
                 elif key == "nb_drones":
+                    if key in seen["seen_keys"]:
+                        raise ParseError(f"invalid key, {key} already seen")
                     try:
                         nb_drones: int = int(value)
                         map_specs["nb_drones"] = nb_drones
