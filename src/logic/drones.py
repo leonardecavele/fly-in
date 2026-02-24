@@ -7,7 +7,7 @@ class Drone():
     max_registered_id
         Class-level counter for assigning new ids.
     """
-    max_registered_id: int = 0
+    max_registered_id: int = 1
 
     def __init__(self) -> None:
         """
