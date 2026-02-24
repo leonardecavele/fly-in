@@ -340,7 +340,7 @@ class Map():
             if self.end_hub not in parents:
                 start_turn += 1
                 if start_turn > MAX_TURN:
-                    raise RuntimeError("can'start_turn find any existing path")
+                    raise RuntimeError("can't find any existing path")
                 continue
 
             # fill wait at start hub
