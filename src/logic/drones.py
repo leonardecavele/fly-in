@@ -15,5 +15,5 @@ class Drone():
 
         Assign a unique id and increment the class counter.
         """
-        self.id = Drone.max_registered_id
+        self.id: int = Drone.max_registered_id
         Drone.max_registered_id += 1

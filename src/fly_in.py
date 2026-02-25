@@ -14,7 +14,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(name)s:%(lineno)d - %(message)s"
 )
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 def main() -> int:
@@ -63,7 +63,7 @@ def main() -> int:
     except ValidationError as e:
         logger.error(e.errors()[0]["msg"])
         return ErrCode.VALIDATION_ERR
-    m = Map(**map_specs)
+    m: Map = Map(**map_specs)
     logger.debug(m.hubs)
     logger.debug(m.connections)
 

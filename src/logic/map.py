@@ -126,9 +126,9 @@ class Map():
             for i, node in enumerate(paths[d]):
                 if node == self.start_hub:
                     continue
-                prev_node = paths[d][i - 1]
+                prev_node: Hub | Connection = paths[d][i - 1]
                 if isinstance(prev_node, Hub) and isinstance(node, Hub):
-                    c = self.get_connection(prev_node, node)
+                    c: Connection = self.get_connection(prev_node, node)
                     c.drones.setdefault(i, []).append(d)
 
                 if isinstance(node, Connection):
@@ -144,8 +144,8 @@ class Map():
         for i in range(1, self.turn_count):
             for h in self.hubs.values():
                 if h == self.end_hub:
-                    prev = h.drones.get(i - 1, [])
-                    cur = h.drones.setdefault(i, [])
+                    prev: list[Drone] = h.drones.get(i - 1, [])
+                    cur: list[Drone] = h.drones.setdefault(i, [])
                     for d in prev:
                         if d not in cur:
                             cur.append(d)
@@ -242,7 +242,7 @@ class Map():
             parents[dest_node] = [(from_node, priority_count)]
             queue.append(dest_node)
         elif step[dest_node] == step_count:
-            prev_priority = max(p for _, p in parents[dest_node])
+            prev_priority: int = max(p for _, p in parents[dest_node])
             parents[dest_node].append((from_node, priority_count))
             if priority_count > prev_priority:
                 queue.append(dest_node)
@@ -295,9 +295,9 @@ class Map():
                 if node == self.end_hub:
                     max_step = step[node]
 
-                node_priority = max(p for _, p in parents[node])
-                step_count = step[node] + 1
-                turn = start_turn + step_count
+                node_priority: int = max(p for _, p in parents[node])
+                step_count: int = step[node] + 1
+                turn: int = start_turn + step_count
 
                 # process Hub
                 if isinstance(node, Hub):
@@ -385,7 +385,7 @@ class Map():
         visited: set[Hub | Connection] = {self.start_hub}
 
         while queue:
-            node = queue.popleft()
+            node: Hub | Connection = queue.popleft()
 
             if node == self.end_hub:
                 return True
@@ -396,7 +396,7 @@ class Map():
                         continue
 
                     a, b = c.linked
-                    dest = b if node is a else a
+                    dest: Hub = b if node is a else a
 
                     if dest.zone == "restricted":
                         if c not in visited:

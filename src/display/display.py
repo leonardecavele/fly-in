@@ -188,8 +188,8 @@ class MapView(arcade.View):
             self.static_shapes.append(
                 create_line(a_x, a_y, b_x, b_y, arcade.color.DAVY_GREY, 6.3)
             )
-            x = (a_x + b_x) / 2
-            y = (a_y + b_y) / 2
+            x: float = (a_x + b_x) / 2
+            y: float = (a_y + b_y) / 2
             t = arcade.Text(
                 "0",
                 x,
@@ -213,14 +213,16 @@ class MapView(arcade.View):
                     create_rectangle_filled(x, y, 30, 29, color)
                 )
             elif hub.zone == "priority":
-                pts = triangle_points(x, y + 3.3, 29)
+                pts: list[tuple[float, float]] = triangle_points(
+                    x, y + 3.3, 29
+                )
                 self.static_shapes.append(create_polygon(pts, color))
             elif hub.zone == "blocked":
                 pts = regular_polygon_points(x, y, 17.5, 6)
                 self.static_shapes.append(create_polygon(pts, color))
 
-        x_list = [hub.x for hub in self.map.hubs.values()]
-        y_list = [hub.y for hub in self.map.hubs.values()]
+        x_list: list[int | float] = [hub.x for hub in self.map.hubs.values()]
+        y_list: list[int | float] = [hub.y for hub in self.map.hubs.values()]
         min_x, max_x = min(x_list), max(x_list)
         min_y, max_y = min(y_list), max(y_list)
         self.world_bounds = (min_x, min_y, max_x, max_y)
@@ -261,21 +263,21 @@ class MapView(arcade.View):
             return None
 
         min_x, min_y, max_x, max_y = self.world_bounds
-        w = max_x - min_x
-        h = max_y - min_y
+        w: float = max_x - min_x
+        h: float = max_y - min_y
 
-        min_extent = self.cell_size * 0.5
+        min_extent: float = self.cell_size * 0.5
         if w < min_extent:
             w = min_extent
         if h < min_extent:
             h = min_extent
 
-        zoom_x = self.window.width / w
-        zoom_y = self.window.height / h
+        zoom_x: float = self.window.width / w
+        zoom_y: float = self.window.height / h
         zoom = min(zoom_x, zoom_y) / self.pad
 
-        center_x = (min_x + max_x) * 0.5
-        center_y = (min_y + max_y) * 0.5
+        center_x: float = (min_x + max_x) * 0.5
+        center_y: float = (min_y + max_y) * 0.5
         self.camera.position = (center_x, center_y)
         self.camera.zoom = zoom
 
@@ -426,8 +428,8 @@ class MapView(arcade.View):
 
         pre_x, pre_y = self.screen_to_world(x, y)
 
-        factor = 1.1 if scroll_y > 0 else (1.0 / 1.1)
-        new_zoom = self.camera.zoom * factor
+        factor: float = 1.1 if scroll_y > 0 else (1.0 / 1.1)
+        new_zoom: float = self.camera.zoom * factor
 
         if new_zoom < 0.45:
             new_zoom = 0.45

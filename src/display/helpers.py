@@ -3,6 +3,8 @@ import math
 import pyglet
 import arcade
 
+from pyglet.display.base import Screen
+
 
 def screen_size() -> tuple[int, int]:
     """
@@ -15,7 +17,7 @@ def screen_size() -> tuple[int, int]:
     tuple[int, int]
         Screen width and height in pixels.
     """
-    screen = pyglet.display.get_display().get_default_screen()
+    screen: Screen = pyglet.display.get_display().get_default_screen()
     return screen.width, screen.height
 
 
@@ -35,7 +37,7 @@ def parse_color(name: str) -> arcade.types.Color:
     arcade.types.Color
         Resolved Arcade color value.
     """
-    key = name.strip().upper().replace(" ", "_").replace("-", "_")
+    key: str = name.strip().upper().replace(" ", "_").replace("-", "_")
     return getattr(arcade.color, key, arcade.color.SNOW)
 
 
@@ -61,7 +63,7 @@ def triangle_points(
     list[tuple[float, float]]
         Triangle vertex points.
     """
-    h = size * 0.5
+    h: float = size * 0.5
     return [
         (cx, cy + h),
         (cx - h, cy - h),
