@@ -115,6 +115,9 @@ class Map():
         self.start_hub.drones.setdefault(0, [])
         self.start_hub.drones[0].extend(drones)
 
+        if not self.has_path():
+            raise RuntimeError("can't find any existing path")
+
         # compute path for each drone
         for d in drones:
             paths[d] = self.find_best_path(d)
@@ -339,8 +342,6 @@ class Map():
             # must wait
             if self.end_hub not in parents:
                 start_turn += 1
-                if start_turn > MAX_TURN:
-                    raise RuntimeError("can't find any existing path")
                 continue
 
             # fill wait at start hub
@@ -364,3 +365,56 @@ class Map():
             path = start_padding + path[1:]
 
             return path
+
+    def has_path(self) -> bool:
+        """
+        Check if any valid route exists from start to end.
+
+        Run a simple BFS at turn 0 to verify reachability, applying the same
+        node/edge validity rules as the routing algorithm.
+
+        Returns
+        -------
+        bool
+            True if at least one valid path exists at turn 0, False otherwise.
+        """
+        assert self.start_hub is not None
+        assert self.end_hub is not None
+
+        queue: deque[Hub | Connection] = deque([self.start_hub])
+        visited: set[Hub | Connection] = {self.start_hub}
+
+        while queue:
+            node = queue.popleft()
+
+            if node == self.end_hub:
+                return True
+
+            if isinstance(node, Hub):
+                for c in node.linked:
+                    if not self.is_node_valid(c, 0):
+                        continue
+
+                    a, b = c.linked
+                    dest = b if node is a else a
+
+                    if dest.zone == "restricted":
+                        if c not in visited:
+                            visited.add(c)
+                            queue.append(c)
+                        continue
+                    else:
+                        if not self.is_node_valid(dest, 0):
+                            continue
+
+                    if dest not in visited:
+                        visited.add(dest)
+                        queue.append(dest)
+            else:
+                for dest in node.linked:
+                    if not self.is_node_valid(dest, 0):
+                        continue
+                    if dest not in visited:
+                        visited.add(dest)
+                        queue.append(dest)
+        return False
