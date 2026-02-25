@@ -1,5 +1,5 @@
 # helpers
-GREEN := \033[0;92m
+GREEN := \e[0;32m
 RESET := \e[0m
 FLAKE8_SUCCESS := printf '%b\n' "$(GREEN)flake8 success$(RESET)"
 
